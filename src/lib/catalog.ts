@@ -85,6 +85,10 @@ export const REACTION_EMOJIS = ['👍', '🎉', '❤️', '🔥', '👏', '😊'
 
 export const CHEER_PRESETS = ['잘했어 오늘도!', '멋지다 우리', '이 정도면 완벽해', '역시 든든해', '나도 힘낼게']
 
+export const CHORE_CATEGORIES = ['청소', '요리', '빨래', '설거지', '장보기', '운동', '공부', '기타']
+
+export const CHORE_COMMENT_PRESETS = ['고마워!', '내가 도와줄게', '이따 같이 하자', '잘했어', '수고했어']
+
 export function interestLabel(key: string): string {
   return INTERESTS.find((i) => i.key === key)?.label ?? key
 }

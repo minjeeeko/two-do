@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
-import { missionsForCouple } from '../lib/selectors'
+import { choresForUserOnDate } from '../lib/selectors'
 import { Avatar, Button, Card } from '../components/ui'
 import { CheckIcon, HeartIcon, SendIcon } from '../components/icons'
 import { CloudIllustration, GrassRow, HouseIllustration } from '../components/illustrations'
 import { todayStr } from '../lib/date'
 import type { HouseMessage } from '../types'
 
-function daysTogether(connectedAt: string): number {
-  const start = new Date(connectedAt).getTime()
+function daysTogether(origin: string): number {
+  const start = new Date(origin + (origin.length === 10 ? 'T00:00:00' : '')).getTime()
   return Math.max(0, Math.floor((Date.now() - start) / 86400000))
 }
 
@@ -41,52 +41,40 @@ function RoomCard({ userId, tone }: { userId: string; tone: 'brand' | 'cheer' })
   const state = useAppStore()
   const user = state.users[userId]
   const today = todayStr()
-  const missions = missionsForCouple(state).filter(
-    (m) => m.ownerType === 'couple' || m.ownerUserId === userId
-  )
-  const doneSet = new Set(
-    Object.values(state.checkins)
-      .filter((c) => c.userId === userId && c.date === today)
-      .map((c) => c.missionId)
-  )
-  const shown = missions.slice(0, 4)
-  const doneCount = missions.filter((m) => doneSet.has(m.id)).length
+  const chores = choresForUserOnDate(state, userId, today)
+  const shown = chores.slice(0, 4)
+  const doneCount = chores.filter((c) => c.completed).length
 
   return (
-    <Link to="/missions" className="block">
+    <Link to="/chores" className="block">
       <Card className="p-3.5 h-full active:bg-paper transition-colors">
         <div className="flex items-center gap-2 mb-3">
-          <Avatar label={user?.nickname ?? '?'} size={26} tone={tone} />
+          <Avatar label={user?.nickname ?? '?'} size={26} tone={tone} src={user?.avatarUrl} />
           <div className="min-w-0">
             <p className="text-[13px] font-bold text-ink truncate">{user?.nickname}의 방</p>
             <p className="text-[10.5px] text-ink-faint">
-              오늘 {doneCount}/{missions.length}
+              오늘 {doneCount}/{chores.length}
             </p>
           </div>
         </div>
         <div className="space-y-1.5">
-          {missions.length === 0 && <p className="text-[11.5px] text-ink-faint py-1">오늘 미션이 없어요</p>}
-          {shown.map((m) => {
-            const done = doneSet.has(m.id)
-            return (
-              <div key={m.id} className="flex items-center gap-1.5">
-                <span
-                  className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
-                    done ? 'bg-streak text-white' : 'border border-line'
-                  }`}
-                >
-                  {done && <CheckIcon size={11} />}
-                </span>
-                <span
-                  className={`text-[12px] truncate ${done ? 'text-ink-faint line-through' : 'text-ink-2'}`}
-                >
-                  {m.title}
-                </span>
-              </div>
-            )
-          })}
-          {missions.length > 4 && (
-            <p className="text-[11px] text-ink-faint pl-[22px]">+{missions.length - 4}개 더</p>
+          {chores.length === 0 && <p className="text-[11.5px] text-ink-faint py-1">오늘 집안일이 없어요</p>}
+          {shown.map((c) => (
+            <div key={c.id} className="flex items-center gap-1.5">
+              <span
+                className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
+                  c.completed ? 'bg-streak text-white' : 'border border-line'
+                }`}
+              >
+                {c.completed && <CheckIcon size={11} />}
+              </span>
+              <span className={`text-[12px] truncate ${c.completed ? 'text-ink-faint line-through' : 'text-ink-2'}`}>
+                {c.title}
+              </span>
+            </div>
+          ))}
+          {chores.length > 4 && (
+            <p className="text-[11px] text-ink-faint pl-[22px]">+{chores.length - 4}개 더</p>
           )}
         </div>
       </Card>
@@ -121,7 +109,7 @@ export function Home() {
     setDraft('')
   }
 
-  const together = daysTogether(couple.connectedAt)
+  const together = daysTogether(couple.startDate ?? couple.connectedAt)
 
   return (
     <div className="flex flex-col flex-1">

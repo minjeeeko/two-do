@@ -126,11 +126,31 @@ export function ProgressBar({ value, tone = 'streak' }: { value: number; tone?: 
   )
 }
 
-export function Avatar({ label, tone = 'brand', size = 36 }: { label: string; tone?: 'brand' | 'cheer'; size?: number }) {
+export function Avatar({
+  label,
+  tone = 'brand',
+  size = 36,
+  src,
+}: {
+  label: string
+  tone?: 'brand' | 'cheer'
+  size?: number
+  src?: string
+}) {
   const bg = tone === 'brand' ? 'bg-brand-soft text-brand-dark' : 'bg-cheer-soft text-cheer'
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt=""
+        className="rounded-full object-cover shrink-0"
+        style={{ width: size, height: size }}
+      />
+    )
+  }
   return (
     <div
-      className={`flex items-center justify-center rounded-full font-bold ${bg}`}
+      className={`flex items-center justify-center rounded-full font-bold shrink-0 ${bg}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {label.slice(0, 1)}

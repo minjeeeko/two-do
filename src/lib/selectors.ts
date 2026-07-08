@@ -1,8 +1,48 @@
-import type { AppNotification, Checkin, Mission, User } from '../types'
-import { addDaysStr, calcStreak, calcWeeklyRate, startOfWeekStr, todayStr } from './date'
+import type { AppNotification, Checkin, Chore, Mission, User } from '../types'
+import { addDaysStr, calcStreak, calcWeeklyRate, lastNDays, startOfWeekStr, todayStr } from './date'
 import type { useAppStore } from '../store/useAppStore'
 
 type Store = ReturnType<typeof useAppStore.getState>
+
+export function choresForDate(state: Store, date: string): Chore[] {
+  return Object.values(state.chores)
+    .filter((c) => c.date === date)
+    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1))
+}
+
+export function choresForUserOnDate(state: Store, userId: string, date: string): Chore[] {
+  return choresForDate(state, date).filter(
+    (c) => c.ownerType === 'together' || c.ownerUserId === userId
+  )
+}
+
+export function choreCountsByDate(state: Store): Map<string, number> {
+  const m = new Map<string, number>()
+  for (const c of Object.values(state.chores)) m.set(c.date, (m.get(c.date) ?? 0) + 1)
+  return m
+}
+
+export function reportSummary(state: Store, range: 'week' | 'month', endDate: string = todayStr()) {
+  const days = new Set(lastNDays(range === 'week' ? 7 : 30, endDate))
+  const inRange = Object.values(state.chores).filter((c) => days.has(c.date))
+  const total = inRange.length
+  const done = inRange.filter((c) => c.completed).length
+  const perUser = (userId: string) => {
+    const owned = inRange.filter((c) => c.ownerType === 'together' || c.ownerUserId === userId)
+    return {
+      total: owned.length,
+      done: owned.filter((c) => c.completed).length,
+    }
+  }
+  const together = inRange.filter((c) => c.ownerType === 'together')
+  return {
+    total,
+    done,
+    rate: total > 0 ? Math.round((done / total) * 100) : 0,
+    together: { total: together.length, done: together.filter((c) => c.completed).length },
+    perUser,
+  }
+}
 
 export function getPartner(state: Store, userId: string): User | undefined {
   if (!state.couple) return undefined

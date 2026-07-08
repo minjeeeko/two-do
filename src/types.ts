@@ -13,6 +13,7 @@ export interface User {
   id: string
   nickname: string
   colorTag: string // avatar accent color
+  avatarUrl?: string // profile image data URL
   interests: string[] // interest keys, min 3
   createdAt: string
 }
@@ -24,10 +25,47 @@ export interface Couple {
   tone: Tone
   memberIds: [string, string]
   connectedAt: string
+  startDate?: string // YYYY-MM-DD, D-day origin (defaults to connectedAt)
   status: 'connected' | 'disconnected'
   disconnectedAt?: string
   points: number
   level: number
+}
+
+export type ChoreOwnerType = 'personal' | 'together'
+
+/** A date-scoped to-do (집안일). */
+export interface Chore {
+  id: string
+  coupleId: string
+  ownerType: ChoreOwnerType
+  ownerUserId?: string // for personal chores
+  title: string
+  description?: string
+  category: string
+  date: string // YYYY-MM-DD the chore is scheduled for
+  completed: boolean
+  completedAt?: string
+  completedBy?: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ChoreReaction {
+  id: string
+  choreId: string
+  userId: string
+  emoji: string
+  createdAt: string
+}
+
+export interface ChoreComment {
+  id: string
+  choreId: string
+  userId: string
+  text: string
+  createdAt: string
 }
 
 export interface MissionFrequency {
@@ -105,6 +143,9 @@ export type NotificationType =
   | 'coupleGoal'
   | 'reminder'
   | 'system'
+  | 'chore'
+  | 'comment'
+  | 'complete'
 
 export interface AppNotification {
   id: string

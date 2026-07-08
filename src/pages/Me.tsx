@@ -1,15 +1,9 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
-import { Avatar, Card, StatusPill } from '../components/ui'
-import {
-  BellIcon,
-  ChevronRightIcon,
-  ShieldIcon,
-  SparkleIcon,
-  UsersIcon,
-} from '../components/icons'
-import { interestLabel } from '../lib/catalog'
+import { Avatar, Card } from '../components/ui'
+import { ChevronRightIcon, EditIcon, HeartIcon, ShieldIcon, SparkleIcon, UsersIcon } from '../components/icons'
+import { formatKoreanDate } from '../lib/date'
 
 function Row({ to, icon, label, desc }: { to: string; icon: ReactNode; label: string; desc?: string }) {
   return (
@@ -33,47 +27,44 @@ export function Me() {
   const currentUserId = state.currentUserId!
   const user = state.users[currentUserId]
   const couple = state.couple!
-
-  const points = state.pointsLog
-    .filter((p) => p.scope === 'personal' && p.userId === currentUserId)
-    .reduce((s, p) => s + p.amount, 0)
-  const badgeCount = Object.values(state.badges).filter(
-    (b) => b.userId === currentUserId || b.scope === 'couple'
-  ).length
+  const startDate = couple.startDate ?? couple.connectedAt.slice(0, 10)
 
   return (
     <div className="px-4 pt-5 pb-8">
       <h1 className="text-[19px] font-bold text-ink mb-4">마이</h1>
 
+      {/* Profile */}
       <Card className="p-4 mb-4">
         <div className="flex items-center gap-3">
-          <Avatar label={user?.nickname ?? ''} size={48} tone="brand" />
+          <Avatar label={user?.nickname ?? ''} size={52} tone="brand" src={user?.avatarUrl} />
           <div className="flex-1 min-w-0">
             <p className="text-[16px] font-bold text-ink">{user?.nickname}</p>
             <p className="text-[12px] text-ink-muted mt-0.5">{couple.name}</p>
           </div>
-          <StatusPill tone="reward">Lv.{couple.level}</StatusPill>
+          <Link
+            to="/me/profile"
+            className="shrink-0 inline-flex items-center gap-1 rounded-full border border-line px-3 h-9 text-[12.5px] font-semibold text-ink-2 active:bg-paper"
+          >
+            <EditIcon size={14} />
+            수정
+          </Link>
         </div>
-        {user?.interests && user.interests.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3.5">
-            {user.interests.map((k) => (
-              <StatusPill key={k} tone="neutral">
-                #{interestLabel(k)}
-              </StatusPill>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 mt-3.5 rounded-md bg-brand-soft/60 px-3 py-2">
+          <HeartIcon size={14} className="text-brand-dark" />
+          <span className="text-[12.5px] text-ink-2">
+            함께 시작한 날 <span className="font-bold text-ink">{formatKoreanDate(startDate)}</span>
+          </span>
+        </div>
       </Card>
 
-      <Link to="/me/rewards">
+      {/* Report */}
+      <Link to="/me/report">
         <Card className="p-4 mb-6 flex items-center justify-between active:bg-paper">
           <div>
-            <p className="text-[13.5px] font-bold text-ink">포인트 &amp; 뱃지</p>
-            <p className="text-[12px] text-ink-muted mt-0.5">
-              {points}포인트 · 뱃지 {badgeCount}개
-            </p>
+            <p className="text-[13.5px] font-bold text-ink">리포트</p>
+            <p className="text-[12px] text-ink-muted mt-0.5">주 · 월 단위 집안일 리포트 보기</p>
           </div>
-          <div className="flex items-center gap-1 text-reward">
+          <div className="flex items-center gap-1 text-brand">
             <SparkleIcon size={20} />
             <ChevronRightIcon size={18} className="text-ink-faint" />
           </div>
@@ -81,8 +72,6 @@ export function Me() {
       </Link>
 
       <Card className="px-4">
-        <Row to="/me/privacy" icon={<ShieldIcon size={18} />} label="공개 범위 설정" desc="요약 / 상세 / 비공개" />
-        <Row to="/me/notifications" icon={<BellIcon size={18} />} label="알림 설정" desc="응원과 리마인드 알림" />
         <Row to="/me/couple" icon={<UsersIcon size={18} />} label="우리 연결 관리" desc="연결 해제 및 재연결" />
         <Row to="/me/policy" icon={<ShieldIcon size={18} />} label="개인정보 처리방침" />
       </Card>

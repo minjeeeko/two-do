@@ -6,9 +6,11 @@ import { Button, Card, EmptyState } from '../components/ui'
 import { formatRelativeTime } from '../lib/date'
 import {
   BellIcon,
+  CheckIcon,
   FlameIcon,
   HeartIcon,
   HouseIcon,
+  ListIcon,
   MailIcon,
   SendIcon,
   SparkleIcon,
@@ -24,6 +26,9 @@ const ICONS: Record<AppNotification['type'], ComponentType<{ size?: number; clas
   coupleGoal: HouseIcon,
   reminder: BellIcon,
   system: MailIcon,
+  chore: ListIcon,
+  comment: SendIcon,
+  complete: CheckIcon,
 }
 
 export function Mailbox() {
@@ -59,9 +64,9 @@ export function Mailbox() {
               key={n.id}
               onClick={() => {
                 markNotificationRead(n.id)
-                if (n.refId && (n.type === 'checkin' || n.type === 'reaction' || n.type === 'cheer')) {
-                  const checkin = state.checkins[n.refId]
-                  if (checkin) navigate(`/missions/${checkin.missionId}`)
+                if (n.refId) {
+                  const chore = state.chores[n.refId]
+                  if (chore) navigate(`/chores?date=${chore.date}`)
                 }
               }}
               className="w-full text-left"

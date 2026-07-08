@@ -8,6 +8,10 @@ import type {
   CheckinMethod,
   CheckinMedia,
   Cheer,
+  Chore,
+  ChoreComment,
+  ChoreOwnerType,
+  ChoreReaction,
   Couple,
   HouseMessage,
   Mission,
@@ -23,7 +27,7 @@ import type {
 } from '../types'
 import { makeId, makeInviteCode } from '../lib/id'
 import { todayStr } from '../lib/date'
-import { BADGE_CATALOG, MISSION_TEMPLATES, REACTION_EMOJIS } from '../lib/catalog'
+import { BADGE_CATALOG, CHORE_CATEGORIES, MISSION_TEMPLATES, REACTION_EMOJIS } from '../lib/catalog'
 import { seedDemoData } from '../lib/seed'
 
 interface AppState {
@@ -40,6 +44,10 @@ interface AppState {
   reactions: Record<string, Reaction>
   cheers: Record<string, Cheer>
   houseMessages: Record<string, HouseMessage>
+  chores: Record<string, Chore>
+  choreReactions: Record<string, ChoreReaction>
+  choreComments: Record<string, ChoreComment>
+  choreCategories: string[]
   notifications: Record<string, AppNotification>
   badges: Record<string, Badge>
   pointsLog: PointsEntry[]
@@ -89,6 +97,25 @@ interface AppState {
   addCheer: (checkinId: string, text: string) => void
   sendHouseMessage: (text: string) => void
 
+  // chores (집안일)
+  addChore: (input: {
+    ownerType: ChoreOwnerType
+    title: string
+    description?: string
+    category: string
+    date: string
+  }) => void
+  updateChore: (id: string, patch: Partial<Pick<Chore, 'title' | 'description' | 'category' | 'ownerType' | 'date'>>) => void
+  toggleChoreComplete: (id: string) => void
+  deleteChore: (id: string) => void
+  toggleChoreReaction: (choreId: string, emoji: string) => void
+  addChoreComment: (choreId: string, text: string) => void
+  addChoreCategory: (label: string) => void
+
+  // profile / couple
+  updateProfile: (patch: { nickname?: string; avatarUrl?: string | null }) => void
+  setStartDate: (date: string) => void
+
   // notifications
   markNotificationRead: (id: string) => void
   markAllNotificationsRead: () => void
@@ -133,6 +160,10 @@ function emptyState() {
     reactions: {},
     cheers: {},
     houseMessages: {},
+    chores: {},
+    choreReactions: {},
+    choreComments: {},
+    choreCategories: [...CHORE_CATEGORIES],
     notifications: {},
     badges: {},
     pointsLog: [],
@@ -535,6 +566,187 @@ export const useAppStore = create<AppState>()(
         set({ houseMessages: { ...state.houseMessages, [msg.id]: msg }, notifications })
       },
 
+      addChore: (input) => {
+        const state = get()
+        if (!state.couple || !state.currentUserId) return
+        const userId = state.currentUserId
+        const id = makeId('chore')
+        const now = new Date().toISOString()
+        const chore: Chore = {
+          id,
+          coupleId: state.couple.id,
+          ownerType: input.ownerType,
+          ownerUserId: input.ownerType === 'personal' ? userId : undefined,
+          title: input.title.trim(),
+          description: input.description?.trim() || undefined,
+          category: input.category,
+          date: input.date,
+          completed: false,
+          createdBy: userId,
+          createdAt: now,
+          updatedAt: now,
+        }
+        let notifications = state.notifications
+        const partnerId = state.couple.memberIds.find((m) => m !== userId)
+        if (partnerId) {
+          const n = notify(
+            partnerId,
+            'chore',
+            input.ownerType === 'together' ? '새 우리 집안일이 등록됐어요' : '상대가 새 집안일을 등록했어요',
+            `${state.users[userId]?.nickname ?? '상대'}: "${chore.title}"`,
+            id
+          )
+          notifications = { ...notifications, [n.id]: n }
+        }
+        set({ chores: { ...state.chores, [id]: chore }, notifications })
+      },
+
+      updateChore: (id, patch) => {
+        const state = get()
+        const chore = state.chores[id]
+        if (!chore) return
+        set({
+          chores: {
+            ...state.chores,
+            [id]: {
+              ...chore,
+              ...patch,
+              ownerUserId: patch.ownerType
+                ? patch.ownerType === 'personal'
+                  ? (chore.ownerUserId ?? state.currentUserId ?? undefined)
+                  : undefined
+                : chore.ownerUserId,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        })
+      },
+
+      toggleChoreComplete: (id) => {
+        const state = get()
+        const chore = state.chores[id]
+        if (!chore || !state.currentUserId) return
+        const userId = state.currentUserId
+        const nowCompleted = !chore.completed
+        const updated: Chore = {
+          ...chore,
+          completed: nowCompleted,
+          completedAt: nowCompleted ? new Date().toISOString() : undefined,
+          completedBy: nowCompleted ? userId : undefined,
+          updatedAt: new Date().toISOString(),
+        }
+        let notifications = state.notifications
+        const partnerId = state.couple?.memberIds.find((m) => m !== userId)
+        if (nowCompleted && partnerId) {
+          const n = notify(
+            partnerId,
+            'complete',
+            '집안일을 완료했어요',
+            `${state.users[userId]?.nickname ?? '상대'}님이 "${chore.title}"을(를) 끝냈어요`,
+            id
+          )
+          notifications = { ...notifications, [n.id]: n }
+        }
+        set({ chores: { ...state.chores, [id]: updated }, notifications })
+      },
+
+      deleteChore: (id) => {
+        const state = get()
+        const chores = { ...state.chores }
+        delete chores[id]
+        const choreReactions = Object.fromEntries(
+          Object.entries(state.choreReactions).filter(([, r]) => r.choreId !== id)
+        )
+        const choreComments = Object.fromEntries(
+          Object.entries(state.choreComments).filter(([, c]) => c.choreId !== id)
+        )
+        set({ chores, choreReactions, choreComments })
+      },
+
+      toggleChoreReaction: (choreId, emoji) => {
+        const state = get()
+        if (!state.currentUserId) return
+        const userId = state.currentUserId
+        const existing = Object.values(state.choreReactions).find(
+          (r) => r.choreId === choreId && r.userId === userId && r.emoji === emoji
+        )
+        const choreReactions = { ...state.choreReactions }
+        let notifications = state.notifications
+        if (existing) {
+          delete choreReactions[existing.id]
+        } else {
+          const r: ChoreReaction = { id: makeId('crx'), choreId, userId, emoji, createdAt: new Date().toISOString() }
+          choreReactions[r.id] = r
+          const chore = state.chores[choreId]
+          const partnerId = state.couple?.memberIds.find((m) => m !== userId)
+          if (chore && partnerId && chore.createdBy !== userId) {
+            const n = notify(
+              chore.createdBy,
+              'reaction',
+              '반응이 도착했어요',
+              `${state.users[userId]?.nickname ?? '상대'}님이 "${chore.title}"에 ${emoji}`,
+              choreId
+            )
+            notifications = { ...notifications, [n.id]: n }
+          }
+        }
+        set({ choreReactions, notifications })
+      },
+
+      addChoreComment: (choreId, text) => {
+        const state = get()
+        if (!state.currentUserId || !text.trim()) return
+        const userId = state.currentUserId
+        const c: ChoreComment = {
+          id: makeId('cmt'),
+          choreId,
+          userId,
+          text: text.trim(),
+          createdAt: new Date().toISOString(),
+        }
+        let notifications = state.notifications
+        const chore = state.chores[choreId]
+        const partnerId = state.couple?.memberIds.find((m) => m !== userId)
+        if (chore && partnerId && chore.createdBy !== userId) {
+          const n = notify(
+            chore.createdBy,
+            'comment',
+            '댓글이 달렸어요',
+            `${state.users[userId]?.nickname ?? '상대'}: "${c.text}"`,
+            choreId
+          )
+          notifications = { ...notifications, [n.id]: n }
+        }
+        set({ choreComments: { ...state.choreComments, [c.id]: c }, notifications })
+      },
+
+      addChoreCategory: (label) => {
+        const state = get()
+        const trimmed = label.trim()
+        if (!trimmed || state.choreCategories.includes(trimmed)) return
+        set({ choreCategories: [...state.choreCategories, trimmed] })
+      },
+
+      updateProfile: (patch) => {
+        const state = get()
+        if (!state.currentUserId) return
+        const user = state.users[state.currentUserId]
+        if (!user) return
+        const next: User = {
+          ...user,
+          nickname: patch.nickname?.trim() ? patch.nickname.trim() : user.nickname,
+          avatarUrl:
+            patch.avatarUrl === null ? undefined : patch.avatarUrl !== undefined ? patch.avatarUrl : user.avatarUrl,
+        }
+        set({ users: { ...state.users, [user.id]: next } })
+      },
+
+      setStartDate: (date) => {
+        const state = get()
+        if (!state.couple) return
+        set({ couple: { ...state.couple, startDate: date } })
+      },
+
       markNotificationRead: (id) => {
         const state = get()
         const n = state.notifications[id]
@@ -575,7 +787,7 @@ export const useAppStore = create<AppState>()(
       deleteAllData: () => set({ ...emptyState() }),
     }),
     {
-      name: 'domo-store-v2',
+      name: 'domo-store-v3',
       onRehydrateStorage: () => (state) => {
         state?.setHydrated()
       },

@@ -21,48 +21,26 @@ function buildMonthMatrix(year: number, month: number): (string | null)[][] {
   return weeks
 }
 
-function levelFor(count: number): 0 | 1 | 2 | 3 | 4 {
-  if (count >= 4) return 4
-  if (count === 3) return 3
-  if (count === 2) return 2
-  if (count === 1) return 1
-  return 0
-}
-
-const levelBg: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'bg-cal-0',
-  1: 'bg-cal-1',
-  2: 'bg-cal-2',
-  3: 'bg-cal-3',
-  4: 'bg-cal-4',
-}
-
-const levelText: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'text-ink-faint',
-  1: 'text-ink-2',
-  2: 'text-ink-2',
-  3: 'text-white',
-  4: 'text-white',
-}
-
-export function CalendarMonth({ countsByDate }: { countsByDate: Map<string, number> }) {
+/** Selectable month calendar; days with chores show a dot. */
+export function CalendarMonth({
+  countsByDate,
+  selected,
+  onSelect,
+}: {
+  countsByDate: Map<string, number>
+  selected: string
+  onSelect: (date: string) => void
+}) {
   const today = todayStr()
-  const now = new Date()
-  const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() })
+  const initial = new Date((selected || today) + 'T00:00:00')
+  const [cursor, setCursor] = useState({ year: initial.getFullYear(), month: initial.getMonth() })
 
   const weeks = buildMonthMatrix(cursor.year, cursor.month)
-  const isCurrentMonth = cursor.year === now.getFullYear() && cursor.month === now.getMonth()
-  const activeDaysThisMonth = weeks
-    .flat()
-    .filter((d): d is string => !!d && (countsByDate.get(d) ?? 0) > 0).length
 
-  const goPrev = () => {
+  const goPrev = () =>
     setCursor((c) => (c.month === 0 ? { year: c.year - 1, month: 11 } : { year: c.year, month: c.month - 1 }))
-  }
-  const goNext = () => {
-    if (isCurrentMonth) return
+  const goNext = () =>
     setCursor((c) => (c.month === 11 ? { year: c.year + 1, month: 0 } : { year: c.year, month: c.month + 1 }))
-  }
 
   return (
     <div>
@@ -74,23 +52,19 @@ export function CalendarMonth({ countsByDate }: { countsByDate: Map<string, numb
         >
           <ChevronLeftIcon size={18} />
         </button>
-        <div className="text-center">
-          <p className="text-[14px] font-bold text-ink">
-            {cursor.year}년 {cursor.month + 1}월
-          </p>
-          <p className="text-[11px] text-ink-faint mt-0.5">이번 달 {activeDaysThisMonth}일 기록</p>
-        </div>
+        <p className="text-[14px] font-bold text-ink">
+          {cursor.year}년 {cursor.month + 1}월
+        </p>
         <button
           onClick={goNext}
-          disabled={isCurrentMonth}
           aria-label="다음 달"
-          className="h-8 w-8 flex items-center justify-center rounded-full text-ink-muted active:bg-line-soft disabled:opacity-30"
+          className="h-8 w-8 flex items-center justify-center rounded-full text-ink-muted active:bg-line-soft"
         >
           <ChevronRightIcon size={18} />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 mb-1.5">
+      <div className="grid grid-cols-7 mb-1">
         {WEEKDAYS.map((w, i) => (
           <div
             key={w}
@@ -103,33 +77,38 @@ export function CalendarMonth({ countsByDate }: { countsByDate: Map<string, numb
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-[3px]">
+      <div className="grid grid-cols-7 gap-[2px]">
         {weeks.flat().map((date, i) => {
           if (!date) return <div key={i} className="aspect-square" />
           const count = countsByDate.get(date) ?? 0
-          const level = levelFor(count)
           const isToday = date === today
+          const isSelected = date === selected
+          const dow = new Date(date + 'T00:00:00').getDay()
           const dayNum = Number(date.slice(-2))
+          const textColor = isSelected
+            ? 'text-white'
+            : dow === 0
+              ? 'text-brand'
+              : dow === 6
+                ? 'text-info'
+                : 'text-ink-2'
           return (
-            <div
+            <button
               key={date}
-              title={`${date} · ${count}회`}
-              className={`aspect-square rounded-[9px] flex items-center justify-center text-[12px] font-semibold ${levelBg[level]} ${levelText[level]} ${
-                isToday ? 'ring-2 ring-brand ring-offset-1' : ''
+              onClick={() => onSelect(date)}
+              className={`relative aspect-square rounded-[10px] flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                isSelected ? 'bg-brand' : isToday ? 'bg-brand-soft' : 'active:bg-line-soft'
               }`}
             >
-              {dayNum}
-            </div>
+              <span className={`text-[12.5px] font-semibold ${textColor}`}>{dayNum}</span>
+              {count > 0 && (
+                <span
+                  className={`h-1 w-1 rounded-full ${isSelected ? 'bg-white' : 'bg-brand'}`}
+                />
+              )}
+            </button>
           )
         })}
-      </div>
-
-      <div className="flex items-center justify-end gap-1 mt-3 text-[11px] text-ink-faint">
-        <span>적음</span>
-        {([0, 1, 2, 3, 4] as const).map((lvl) => (
-          <div key={lvl} className={`rounded-full ${levelBg[lvl]}`} style={{ width: 10, height: 10 }} />
-        ))}
-        <span>많음</span>
       </div>
     </div>
   )
