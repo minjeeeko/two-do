@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'MissedGyuwon';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2510-1@1.0/Griun_Gyuwon-Rg.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* surfaces */
+  --color-paper: #fbf8f3;
+  --color-canvas: #ffffff;
+  --color-canvas-soft: #fff9f2;
+
+  /* ink (text) */
+  --color-ink: #2b2521;
+  --color-ink-2: #57504a;
+  --color-ink-muted: #948b83;
+  --color-ink-faint: #c7bdb2;
+
+  /* lines */
+  --color-line: #ece2d6;
+  --color-line-soft: #f2eae0;
+
+  /* brand */
+  --color-brand: #e0704f;
+  --color-brand-dark: #c15c3f;
+  --color-brand-soft: #f7ddd2;
+  --color-brand-ink: #fff9f5;
+
+  /* status roles (meaning-only, kept out of chrome) */
+  --color-streak: #6fa355;
+  --color-streak-soft: #e3ecdb;
+  --color-cheer: #e07b95;
+  --color-cheer-soft: #f8e1e7;
+  --color-reward: #d9a13a;
+  --color-reward-soft: #f6ead2;
+  --color-info: #6f93b8;
+  --color-info-soft: #e2eaf2;
+  --color-danger: #cf5346;
+  --color-danger-soft: #f6ddd8;
+
+  /* grass heatmap scale */
+  --color-grass-0: #f0e7db;
+  --color-grass-1: #d9e6cc;
+  --color-grass-2: #b7d3a0;
+  --color-grass-3: #93be79;
+  --color-grass-4: #6fa355;
+
+  --font-display: 'MissedGyuwon', 'Apple SD Gothic Neo', sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', Pretendard,
+    'Apple SD Gothic Neo', 'Noto Sans KR', Roboto, 'Segoe UI', sans-serif, 'Malgun Gothic', 돋움, dotum;
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+
+  --shadow-sheet: 0 -8px 28px -6px rgb(43 37 33 / 0.14);
+  --shadow-float: 0 6px 20px -6px rgb(224 112 79 / 0.35);
+}
+
+html {
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@keyframes domo-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes domo-rise {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-domo-pop {
+  animation: domo-pop 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+}
+
+.animate-domo-rise {
+  animation: domo-rise 0.28s ease-out;
+}
