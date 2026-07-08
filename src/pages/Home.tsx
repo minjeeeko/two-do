@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { missionsForCouple } from '../lib/selectors'
 import { Avatar, Button, Card } from '../components/ui'
-import { CheckIcon, SendIcon } from '../components/icons'
-import { GrassRow, HouseIllustration } from '../components/illustrations'
+import { CheckIcon, HeartIcon, SendIcon } from '../components/icons'
+import { CloudIllustration, GrassRow, HouseIllustration } from '../components/illustrations'
 import { todayStr } from '../lib/date'
 import type { HouseMessage } from '../types'
+
+function daysTogether(connectedAt: string): number {
+  const start = new Date(connectedAt).getTime()
+  return Math.max(0, Math.floor((Date.now() - start) / 86400000))
+}
 
 function SpeechBubble({
   side,
@@ -116,57 +121,77 @@ export function Home() {
     setDraft('')
   }
 
+  const together = daysTogether(couple.connectedAt)
+
   return (
-    <div className="flex flex-col min-h-full">
-      <div className="px-4 pt-6 flex-1">
-        {/* 1. Header */}
-        <h1 className="text-center text-[18px] font-bold text-ink mb-1">
-          <span className="mr-1">🏡</span>
-          {users[u1Id]?.nickname} &amp; {users[u2Id]?.nickname}의 {couple.name}
-        </h1>
-        <p className="text-center text-[12.5px] text-ink-muted mb-3">{couple.tagline}</p>
+    <div className="flex flex-col flex-1">
+      {/* 1. Header (left aligned) + days-together badge on the right */}
+      <div className="flex items-start justify-between gap-2 px-4 pt-5 shrink-0">
+        <div className="min-w-0">
+          <h1 className="text-[17px] font-bold text-ink leading-snug">
+            <span className="mr-1">🏡</span>
+            {users[u1Id]?.nickname} &amp; {users[u2Id]?.nickname}의 {couple.name}
+          </h1>
+          <p className="text-[12.5px] text-ink-muted mt-0.5">{couple.tagline}</p>
+        </div>
+        <span className="shrink-0 mt-0.5 inline-flex items-center gap-1 rounded-full bg-brand-soft text-brand-dark text-[11px] font-bold px-2.5 py-1.5">
+          <HeartIcon size={12} />
+          함께한지 +{together}일
+        </span>
+      </div>
+
+      {/* Sky: clouds fill the gap between header and house; grows on tall screens */}
+      <div className="relative flex-1 flex items-end justify-center min-h-[190px] px-4">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <CloudIllustration className="absolute top-[5%] left-2 w-24" />
+          <CloudIllustration className="absolute top-[3%] right-3 w-16" />
+          <CloudIllustration className="absolute top-[30%] left-1/2 -translate-x-1/2 w-20" />
+          <CloudIllustration className="absolute top-[52%] left-3 w-16" />
+          <CloudIllustration className="absolute top-[46%] right-5 w-20" />
+        </div>
 
         {/* 2. House + speech bubbles */}
-        <div className="flex items-end justify-center gap-1 min-h-[170px]">
+        <div className="relative flex items-end justify-center gap-1 w-full">
           <div className="flex-1 flex justify-end pb-8">
             {partnerMsg && (
               <SpeechBubble side="left" author={users[partnerId]?.nickname ?? ''} text={partnerMsg.text} tone="cheer" />
             )}
           </div>
-          <HouseIllustration className="w-[130px] shrink-0" />
+          <HouseIllustration className="w-[128px] shrink-0" />
           <div className="flex-1 flex justify-start pb-8">
             {myMsg && (
               <SpeechBubble side="right" author={users[currentUserId]?.nickname ?? ''} text={myMsg.text} tone="brand" />
             )}
           </div>
         </div>
-        {!hasAnyMessage && (
-          <p className="text-center text-[12px] text-ink-faint mb-2">서로에게 첫 응원을 남겨보세요</p>
-        )}
-
-        {/* 3. Cheer message input */}
-        <div className="flex gap-2 mt-3 mb-6">
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && send()}
-            placeholder="서로에게 응원의 한마디를 남겨보세요"
-            className="flex-1 h-11 rounded-full border border-line px-4 text-[13.5px] outline-none focus:border-brand bg-canvas"
-          />
-          <Button className="!h-11 !w-11 !p-0 rounded-full shrink-0" onClick={send} aria-label="응원 보내기">
-            <SendIcon size={18} />
-          </Button>
-        </div>
-
-        {/* 4. Two rooms */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <RoomCard userId={u1Id} tone="brand" />
-          <RoomCard userId={u2Id} tone="cheer" />
-        </div>
       </div>
 
-      {/* 5. Grass lawn at the very bottom */}
-      <GrassRow className="mt-2" />
+      {!hasAnyMessage && (
+        <p className="text-center text-[12px] text-ink-faint px-4 shrink-0">서로에게 첫 응원을 남겨보세요</p>
+      )}
+
+      {/* 3. Cheer message input */}
+      <div className="flex gap-2 px-4 mt-3 shrink-0">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && send()}
+          placeholder="서로에게 응원의 한마디를 남겨보세요"
+          className="flex-1 h-11 rounded-full border border-line px-4 text-[13.5px] outline-none focus:border-brand bg-canvas"
+        />
+        <Button className="!h-11 !w-11 !p-0 rounded-full shrink-0" onClick={send} aria-label="응원 보내기">
+          <SendIcon size={18} />
+        </Button>
+      </div>
+
+      {/* 4. Two rooms */}
+      <div className="grid grid-cols-2 gap-3 px-4 mt-4 shrink-0">
+        <RoomCard userId={u1Id} tone="brand" />
+        <RoomCard userId={u2Id} tone="cheer" />
+      </div>
+
+      {/* 5. Grass lawn pinned to the very bottom (just above the nav bar) */}
+      <GrassRow className="mt-4 shrink-0" />
     </div>
   )
 }

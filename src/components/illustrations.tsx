@@ -39,6 +39,20 @@ export function HouseIllustration({ className, ...rest }: SVGProps<SVGSVGElement
   )
 }
 
+/** Soft pale-blue cloud for the home "sky" area. */
+export function CloudIllustration({ className, ...rest }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 120 60" className={className} {...rest} aria-hidden="true">
+      <g fill="#e6eef7">
+        <ellipse cx="38" cy="37" rx="26" ry="18" />
+        <ellipse cx="66" cy="32" rx="30" ry="22" />
+        <ellipse cx="92" cy="39" rx="22" ry="16" />
+        <rect x="18" y="38" width="90" height="16" rx="8" />
+      </g>
+    </svg>
+  )
+}
+
 function Flower({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>

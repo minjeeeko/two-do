@@ -39,7 +39,7 @@ function Shell() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <OfflineBanner />
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/missions" element={<Missions />} />
