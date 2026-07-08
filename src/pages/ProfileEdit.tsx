@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { TopBar } from '../components/TopBar'
 import { Avatar, Button } from '../components/ui'
-import { CameraIcon } from '../components/icons'
+import { CameraIcon, CheckIcon } from '../components/icons'
 import { compressImageToDataUrl, ImageValidationError } from '../lib/image'
 import { todayStr } from '../lib/date'
+import { AVATAR_COLORS, avatarColor } from '../lib/colors'
 
 export function ProfileEdit() {
   const state = useAppStore()
@@ -19,8 +20,11 @@ export function ProfileEdit() {
 
   const [nickname, setNickname] = useState(user?.nickname ?? '')
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user?.avatarUrl)
+  const [colorKey, setColorKey] = useState(user?.colorTag ?? 'brand')
   const [startDate, setStart] = useState(couple.startDate ?? couple.connectedAt.slice(0, 10))
   const [imgError, setImgError] = useState('')
+
+  const accent = avatarColor(colorKey)
 
   async function handlePick(file: File) {
     setImgError('')
@@ -34,7 +38,7 @@ export function ProfileEdit() {
 
   const save = () => {
     if (!nickname.trim()) return
-    updateProfile({ nickname, avatarUrl: avatarUrl ?? null })
+    updateProfile({ nickname, avatarUrl: avatarUrl ?? null, colorTag: colorKey })
     setStartDate(startDate)
     navigate(-1)
   }
@@ -46,8 +50,11 @@ export function ProfileEdit() {
         {/* avatar */}
         <div className="flex flex-col items-center py-4">
           <button onClick={() => fileRef.current?.click()} className="relative">
-            <Avatar label={nickname || '?'} size={92} tone="brand" src={avatarUrl} />
-            <span className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-brand text-white flex items-center justify-center border-2 border-canvas">
+            <Avatar label={nickname || '?'} size={92} color={colorKey} src={avatarUrl} />
+            <span
+              className="absolute bottom-0 right-0 h-8 w-8 rounded-full text-white flex items-center justify-center border-2 border-canvas"
+              style={{ backgroundColor: accent.solid }}
+            >
               <CameraIcon size={16} />
             </span>
           </button>
@@ -79,6 +86,29 @@ export function ProfileEdit() {
           placeholder="닉네임"
           className="w-full h-11 rounded-sm border border-line px-3.5 text-[14px] outline-none focus:border-brand mb-5"
         />
+
+        {/* key color */}
+        <label className="block text-[13px] font-semibold text-ink-2 mb-2">내 키컬러</label>
+        <div className="flex flex-wrap gap-2.5 mb-1">
+          {AVATAR_COLORS.map((c) => {
+            const active = colorKey === c.key
+            return (
+              <button
+                key={c.key}
+                onClick={() => setColorKey(c.key)}
+                aria-label={c.label}
+                className="h-10 w-10 rounded-full flex items-center justify-center border-2 transition-transform active:scale-95"
+                style={{ backgroundColor: c.solid, borderColor: active ? c.fg : 'transparent' }}
+              >
+                {active && <CheckIcon size={18} className="text-white" />}
+              </button>
+            )
+          })}
+        </div>
+        <p className="text-[11.5px] text-ink-faint mb-5">
+          내 아바타와 응원 말풍선 등 내 색으로 <span style={{ color: accent.fg, fontWeight: 700 }}>{accent.label}</span>이(가)
+          적용돼요
+        </p>
 
         <label className="block text-[13px] font-semibold text-ink-2 mb-1.5">함께 시작한 날</label>
         <input

@@ -29,10 +29,10 @@ export function Chores() {
     <div className="px-4 pt-5 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-[19px] font-bold text-ink">집안일</h1>
+        <h1 className="text-[19px] font-bold text-ink">할 일</h1>
         <Button size="sm" onClick={() => setSheetOpen(true)}>
           <PlusIcon size={15} />
-          집안일 추가하기
+          할 일 추가하기
         </Button>
       </div>
 
@@ -74,8 +74,8 @@ export function Chores() {
       <div className="space-y-2.5">
         {shown.length === 0 ? (
           <EmptyState
-            title={tab === 'personal' ? '개인 집안일이 없어요' : '같이 할 집안일이 없어요'}
-            desc="집안일 추가하기로 오늘 할 일을 등록해보세요"
+            title={tab === 'personal' ? '개인 할 일이 없어요' : '같이 할 일이 없어요'}
+            desc="할 일 추가하기로 오늘 할 일을 등록해보세요"
           />
         ) : (
           shown.map((c) => <ChoreCard key={c.id} chore={c} />)

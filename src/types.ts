@@ -34,7 +34,7 @@ export interface Couple {
 
 export type ChoreOwnerType = 'personal' | 'together'
 
-/** A date-scoped to-do (집안일). */
+/** A date-scoped to-do (할 일). */
 export interface Chore {
   id: string
   coupleId: string
@@ -134,6 +134,15 @@ export interface HouseMessage {
   createdAt: string
 }
 
+/** A hand-drawn letter (doodle) sent to the partner's home screen. */
+export interface Letter {
+  id: string
+  userId: string // author
+  imageDataUrl: string
+  createdAt: string
+  read: boolean
+}
+
 export type NotificationType =
   | 'checkin'
   | 'reaction'
@@ -146,6 +155,7 @@ export type NotificationType =
   | 'chore'
   | 'comment'
   | 'complete'
+  | 'letter'
 
 export interface AppNotification {
   id: string

@@ -47,7 +47,7 @@ export function AddChoreSheet({ open, onClose, date }: { open: boolean; onClose:
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="집안일 추가하기">
+    <Sheet open={open} onClose={onClose} title="할 일 추가하기">
       <p className="text-[12px] text-ink-muted mb-4">{formatKoreanDate(date)}에 추가돼요</p>
 
       {/* 개인 / 같이 */}

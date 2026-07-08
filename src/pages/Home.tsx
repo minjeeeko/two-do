@@ -5,8 +5,10 @@ import { choresForUserOnDate } from '../lib/selectors'
 import { Avatar, Button, Card } from '../components/ui'
 import { CheckIcon, HeartIcon, SendIcon } from '../components/icons'
 import { CloudIllustration, GrassRow, HouseIllustration } from '../components/illustrations'
+import { LetterView } from '../components/LetterView'
 import { todayStr } from '../lib/date'
-import type { HouseMessage } from '../types'
+import { avatarColor } from '../lib/colors'
+import type { HouseMessage, Letter } from '../types'
 
 function daysTogether(origin: string): number {
   const start = new Date(origin + (origin.length === 10 ? 'T00:00:00' : '')).getTime()
@@ -17,27 +19,32 @@ function SpeechBubble({
   side,
   author,
   text,
-  tone,
+  color,
 }: {
   side: 'left' | 'right'
   author: string
   text: string
-  tone: 'brand' | 'cheer'
+  color?: string
 }) {
-  const bg = tone === 'brand' ? 'bg-brand-soft' : 'bg-cheer-soft'
-  const nameColor = tone === 'brand' ? 'text-brand-dark' : 'text-cheer'
+  const c = avatarColor(color)
   return (
-    <div className={`relative max-w-[150px] rounded-2xl px-3 py-2 ${bg} animate-domo-pop`}>
-      <p className={`text-[10px] font-bold mb-0.5 ${nameColor}`}>{author}</p>
+    <div
+      className="relative max-w-[150px] rounded-2xl px-3 py-2 animate-domo-pop"
+      style={{ backgroundColor: c.soft }}
+    >
+      <p className="text-[10px] font-bold mb-0.5" style={{ color: c.fg }}>
+        {author}
+      </p>
       <p className="text-[12px] text-ink-2 leading-snug break-words">{text}</p>
       <div
-        className={`absolute top-4 h-2.5 w-2.5 rotate-45 ${bg} ${side === 'left' ? '-right-1' : '-left-1'}`}
+        className={`absolute top-4 h-2.5 w-2.5 rotate-45 ${side === 'left' ? '-right-1' : '-left-1'}`}
+        style={{ backgroundColor: c.soft }}
       />
     </div>
   )
 }
 
-function RoomCard({ userId, tone }: { userId: string; tone: 'brand' | 'cheer' }) {
+function RoomCard({ userId }: { userId: string }) {
   const state = useAppStore()
   const user = state.users[userId]
   const today = todayStr()
@@ -49,7 +56,7 @@ function RoomCard({ userId, tone }: { userId: string; tone: 'brand' | 'cheer' })
     <Link to="/chores" className="block">
       <Card className="p-3.5 h-full active:bg-paper transition-colors">
         <div className="flex items-center gap-2 mb-3">
-          <Avatar label={user?.nickname ?? '?'} size={26} tone={tone} src={user?.avatarUrl} />
+          <Avatar label={user?.nickname ?? '?'} size={26} color={user?.colorTag} src={user?.avatarUrl} />
           <div className="min-w-0">
             <p className="text-[13px] font-bold text-ink truncate">{user?.nickname}의 방</p>
             <p className="text-[10.5px] text-ink-faint">
@@ -58,7 +65,7 @@ function RoomCard({ userId, tone }: { userId: string; tone: 'brand' | 'cheer' })
           </div>
         </div>
         <div className="space-y-1.5">
-          {chores.length === 0 && <p className="text-[11.5px] text-ink-faint py-1">오늘 집안일이 없어요</p>}
+          {chores.length === 0 && <p className="text-[11.5px] text-ink-faint py-1">오늘 할 일이 없어요</p>}
           {shown.map((c) => (
             <div key={c.id} className="flex items-center gap-1.5">
               <span
@@ -88,11 +95,18 @@ export function Home() {
   const users = useAppStore((s) => s.users)
   const houseMessages = useAppStore((s) => s.houseMessages)
   const sendHouseMessage = useAppStore((s) => s.sendHouseMessage)
+  const letters = useAppStore((s) => s.letters)
+  const markLetterRead = useAppStore((s) => s.markLetterRead)
 
   const [draft, setDraft] = useState('')
+  const [viewLetter, setViewLetter] = useState<Letter | null>(null)
 
   const [u1Id, u2Id] = couple.memberIds
   const partnerId = couple.memberIds.find((m) => m !== currentUserId)!
+
+  const latestLetter = Object.values(letters)
+    .filter((l) => l.userId === partnerId)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0]
 
   const latestBy = (uid: string): HouseMessage | undefined =>
     Object.values(houseMessages)
@@ -138,17 +152,44 @@ export function Home() {
           <CloudIllustration className="absolute top-[46%] right-5 w-20" />
         </div>
 
+        {/* received hand-drawn letter, pinned like a polaroid */}
+        {latestLetter && (
+          <button
+            onClick={() => {
+              setViewLetter(latestLetter)
+              markLetterRead(latestLetter.id)
+            }}
+            className="absolute top-2 right-3 z-10 w-[92px] bg-white rounded-md p-1.5 pb-2.5 shadow-float rotate-3 active:scale-95 transition-transform"
+          >
+            <img src={latestLetter.imageDataUrl} alt="손편지" className="w-full rounded-sm bg-[#fffdf8]" />
+            <p className="text-center text-[9px] font-bold text-ink-2 mt-1">손편지 도착</p>
+            {!latestLetter.read && (
+              <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-cheer border-2 border-white" />
+            )}
+          </button>
+        )}
+
         {/* 2. House + speech bubbles */}
         <div className="relative flex items-end justify-center gap-1 w-full">
           <div className="flex-1 flex justify-end pb-8">
             {partnerMsg && (
-              <SpeechBubble side="left" author={users[partnerId]?.nickname ?? ''} text={partnerMsg.text} tone="cheer" />
+              <SpeechBubble
+                side="left"
+                author={users[partnerId]?.nickname ?? ''}
+                text={partnerMsg.text}
+                color={users[partnerId]?.colorTag}
+              />
             )}
           </div>
           <HouseIllustration className="w-[128px] shrink-0" />
           <div className="flex-1 flex justify-start pb-8">
             {myMsg && (
-              <SpeechBubble side="right" author={users[currentUserId]?.nickname ?? ''} text={myMsg.text} tone="brand" />
+              <SpeechBubble
+                side="right"
+                author={users[currentUserId]?.nickname ?? ''}
+                text={myMsg.text}
+                color={users[currentUserId]?.colorTag}
+              />
             )}
           </div>
         </div>
@@ -174,12 +215,14 @@ export function Home() {
 
       {/* 4. Two rooms */}
       <div className="grid grid-cols-2 gap-3 px-4 mt-4 shrink-0">
-        <RoomCard userId={u1Id} tone="brand" />
-        <RoomCard userId={u2Id} tone="cheer" />
+        <RoomCard userId={u1Id} />
+        <RoomCard userId={u2Id} />
       </div>
 
       {/* 5. Grass lawn pinned to the very bottom (just above the nav bar) */}
       <GrassRow className="mt-4 shrink-0" />
+
+      <LetterView letter={viewLetter} onClose={() => setViewLetter(null)} />
     </div>
   )
 }

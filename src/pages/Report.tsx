@@ -3,6 +3,7 @@ import { useAppStore } from '../store/useAppStore'
 import { reportSummary } from '../lib/selectors'
 import { TopBar } from '../components/TopBar'
 import { Avatar, Card, ProgressBar, SectionTitle } from '../components/ui'
+import { avatarColor } from '../lib/colors'
 
 export function Report() {
   const state = useAppStore()
@@ -53,17 +54,18 @@ export function Report() {
         <SectionTitle>구성원별</SectionTitle>
         <Card className="p-4 mb-4 space-y-4">
           {[
-            { id: u1Id, stat: u1, tone: 'brand' as const },
-            { id: u2Id, stat: u2, tone: 'cheer' as const },
-          ].map(({ id, stat, tone }) => {
+            { id: u1Id, stat: u1 },
+            { id: u2Id, stat: u2 },
+          ].map(({ id, stat }) => {
             const rate = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0
+            const c = avatarColor(state.users[id]?.colorTag)
             return (
               <div key={id}>
                 <div className="flex items-center gap-2 mb-1.5">
                   <Avatar
                     label={state.users[id]?.nickname ?? ''}
                     size={24}
-                    tone={tone}
+                    color={state.users[id]?.colorTag}
                     src={state.users[id]?.avatarUrl}
                   />
                   <span className="text-[13px] font-semibold text-ink-2 flex-1">{state.users[id]?.nickname}</span>
@@ -71,13 +73,13 @@ export function Report() {
                     {stat.done}/{stat.total} · {rate}%
                   </span>
                 </div>
-                <ProgressBar value={rate} tone={tone} />
+                <ProgressBar value={rate} color={c.solid} />
               </div>
             )
           })}
         </Card>
 
-        <SectionTitle>같이 한 집안일</SectionTitle>
+        <SectionTitle>같이 한 할 일</SectionTitle>
         <Card className="p-4">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[13px] font-semibold text-ink-2">우리 함께</span>

@@ -30,9 +30,14 @@ export function CoupleManage() {
             <p className="text-[14.5px] font-bold text-ink">{couple.name}</p>
           </div>
           <div className="flex items-center gap-4 mb-2">
-            {couple.memberIds.map((id, i) => (
+            {couple.memberIds.map((id) => (
               <div key={id} className="flex items-center gap-2">
-                <Avatar label={state.users[id]?.nickname ?? ''} tone={i === 0 ? 'brand' : 'cheer'} size={30} />
+                <Avatar
+                  label={state.users[id]?.nickname ?? ''}
+                  color={state.users[id]?.colorTag}
+                  src={state.users[id]?.avatarUrl}
+                  size={30}
+                />
                 <span className="text-[13px] font-semibold text-ink-2">{state.users[id]?.nickname}</span>
               </div>
             ))}

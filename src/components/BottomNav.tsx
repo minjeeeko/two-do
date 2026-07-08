@@ -5,7 +5,7 @@ import { unreadNotificationCount } from '../lib/selectors'
 
 const tabs = [
   { to: '/', label: '홈', Icon: HomeIcon, end: true },
-  { to: '/chores', label: '집안일', Icon: CalendarIcon, end: false },
+  { to: '/chores', label: '할 일', Icon: CalendarIcon, end: false },
   { to: '/mailbox', label: '우편함', Icon: MailIcon, end: false },
   { to: '/me', label: '마이', Icon: UserIcon, end: false },
 ] as const

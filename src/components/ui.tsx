@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
+import { avatarColor } from '../lib/colors'
 
 export function Card({ className = '', ...rest }: HTMLAttributes<HTMLDivElement>) {
   return (
@@ -107,7 +108,16 @@ export function SectionTitle({
   )
 }
 
-export function ProgressBar({ value, tone = 'streak' }: { value: number; tone?: BadgeTone }) {
+export function ProgressBar({
+  value,
+  tone = 'streak',
+  color,
+}: {
+  value: number
+  tone?: BadgeTone
+  /** hex color that overrides the tone-based fill */
+  color?: string
+}) {
   const barColor =
     tone === 'streak'
       ? 'bg-streak'
@@ -119,8 +129,8 @@ export function ProgressBar({ value, tone = 'streak' }: { value: number; tone?: 
   return (
     <div className="h-2 w-full rounded-full bg-line-soft overflow-hidden">
       <div
-        className={`h-full rounded-full ${barColor} transition-[width] duration-500`}
-        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        className={`h-full rounded-full transition-[width] duration-500 ${color ? '' : barColor}`}
+        style={{ width: `${Math.min(100, Math.max(0, value))}%`, backgroundColor: color }}
       />
     </div>
   )
@@ -128,16 +138,16 @@ export function ProgressBar({ value, tone = 'streak' }: { value: number; tone?: 
 
 export function Avatar({
   label,
-  tone = 'brand',
+  color = 'brand',
   size = 36,
   src,
 }: {
   label: string
-  tone?: 'brand' | 'cheer'
+  /** avatar color key (see AVATAR_COLORS) */
+  color?: string
   size?: number
   src?: string
 }) {
-  const bg = tone === 'brand' ? 'bg-brand-soft text-brand-dark' : 'bg-cheer-soft text-cheer'
   if (src) {
     return (
       <img
@@ -148,10 +158,11 @@ export function Avatar({
       />
     )
   }
+  const c = avatarColor(color)
   return (
     <div
-      className={`flex items-center justify-center rounded-full font-bold shrink-0 ${bg}`}
-      style={{ width: size, height: size, fontSize: size * 0.4 }}
+      className="flex items-center justify-center rounded-full font-bold shrink-0"
+      style={{ width: size, height: size, fontSize: size * 0.4, backgroundColor: c.soft, color: c.fg }}
     >
       {label.slice(0, 1)}
     </div>

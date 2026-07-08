@@ -36,7 +36,7 @@ export function Me() {
       {/* Profile */}
       <Card className="p-4 mb-4">
         <div className="flex items-center gap-3">
-          <Avatar label={user?.nickname ?? ''} size={52} tone="brand" src={user?.avatarUrl} />
+          <Avatar label={user?.nickname ?? ''} size={52} color={user?.colorTag} src={user?.avatarUrl} />
           <div className="flex-1 min-w-0">
             <p className="text-[16px] font-bold text-ink">{user?.nickname}</p>
             <p className="text-[12px] text-ink-muted mt-0.5">{couple.name}</p>
@@ -62,7 +62,7 @@ export function Me() {
         <Card className="p-4 mb-6 flex items-center justify-between active:bg-paper">
           <div>
             <p className="text-[13.5px] font-bold text-ink">리포트</p>
-            <p className="text-[12px] text-ink-muted mt-0.5">주 · 월 단위 집안일 리포트 보기</p>
+            <p className="text-[12px] text-ink-muted mt-0.5">주 · 월 단위 할 일 리포트 보기</p>
           </div>
           <div className="flex items-center gap-1 text-brand">
             <SparkleIcon size={20} />

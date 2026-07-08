@@ -6,6 +6,7 @@ import type {
   ChoreReaction,
   Couple,
   HouseMessage,
+  Letter,
   User,
 } from '../types'
 import { makeId } from './id'
@@ -14,6 +15,21 @@ import { CHORE_CATEGORIES, CHORE_COMMENT_PRESETS, REACTION_EMOJIS } from './cata
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
+}
+
+// a hand-drawn-style doodle used as the demo 손편지
+const DEMO_LETTER_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='420' height='320' viewBox='0 0 420 320'>
+  <rect width='420' height='320' fill='#fffdf8'/>
+  <path d='M210 130 C188 96 132 108 144 158 C154 198 210 232 210 232 C210 232 266 198 276 158 C288 108 232 96 210 130 Z' fill='none' stroke='#ff5c8a' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/>
+  <path d='M70 250 q26 -24 52 0 t52 0 t52 0' fill='none' stroke='#ff8a5c' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='120' cy='90' r='4' fill='#ff5c8a'/>
+  <circle cx='300' cy='96' r='4' fill='#8b6ee0'/>
+  <path d='M96 120 l14 14 M110 120 l-14 14' stroke='#8b6ee0' stroke-width='4' stroke-linecap='round'/>
+  <path d='M320 150 q14 16 0 32' fill='none' stroke='#54b087' stroke-width='4' stroke-linecap='round'/>
+</svg>`
+
+function demoLetterDataUrl(): string {
+  return `data:image/svg+xml;utf8,${encodeURIComponent(DEMO_LETTER_SVG)}`
 }
 
 const PERSONAL_CHORES: Record<string, [string, string, string][]> = {
@@ -175,6 +191,17 @@ export function seedDemoData() {
     houseMessages[m.id] = m
   }
 
+  // a hand-drawn letter from 준호, waiting on 민지's home
+  const letters: Record<string, Letter> = {}
+  const demoLetter: Letter = {
+    id: makeId('ltr'),
+    userId: u2Id,
+    imageDataUrl: demoLetterDataUrl(),
+    createdAt: today + 'T07:50:00.000Z',
+    read: false,
+  }
+  letters[demoLetter.id] = demoLetter
+
   // notifications for the current user (u1)
   const notifications: Record<string, AppNotification> = {}
   function pushNotif(type: AppNotification['type'], title: string, body: string, createdAt: string, read: boolean, refId?: string) {
@@ -190,7 +217,7 @@ export function seedDemoData() {
     .forEach((c, i) => {
       pushNotif(
         'chore',
-        c.ownerType === 'together' ? '새 우리 집안일이 등록됐어요' : '준호님이 새 집안일을 등록했어요',
+        c.ownerType === 'together' ? '새 우리 할 일이 등록됐어요' : '준호님이 새 할 일을 등록했어요',
         `준호: "${c.title}"`,
         c.createdAt,
         i > 0,
@@ -221,8 +248,11 @@ export function seedDemoData() {
     .sort((a, b) => ((a.completedAt ?? '') < (b.completedAt ?? '') ? 1 : -1))
     .slice(0, 2)
     .forEach((c) => {
-      pushNotif('complete', '집안일을 완료했어요', `준호님이 "${c.title}"을(를) 끝냈어요`, c.completedAt!, true, c.id)
+      pushNotif('complete', '할 일을 완료했어요', `준호님이 "${c.title}"을(를) 끝냈어요`, c.completedAt!, true, c.id)
     })
+
+  // letter notification
+  pushNotif('letter', '손편지가 도착했어요', '준호님이 손편지를 보냈어요', demoLetter.createdAt, false, demoLetter.id)
 
   const accessLog: AccessLogEntry[] = [
     { id: makeId('log'), actorUserId: u1Id, action: 'invite_create', targetType: 'couple', targetId: coupleId, createdAt: couple.connectedAt },
@@ -242,6 +272,7 @@ export function seedDemoData() {
     choreComments,
     choreCategories: [...CHORE_CATEGORIES],
     houseMessages,
+    letters,
     notifications,
     accessLog,
   }

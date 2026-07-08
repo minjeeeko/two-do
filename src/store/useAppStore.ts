@@ -14,6 +14,7 @@ import type {
   ChoreReaction,
   Couple,
   HouseMessage,
+  Letter,
   Mission,
   MissionFrequency,
   NotificationSettings,
@@ -44,6 +45,7 @@ interface AppState {
   reactions: Record<string, Reaction>
   cheers: Record<string, Cheer>
   houseMessages: Record<string, HouseMessage>
+  letters: Record<string, Letter>
   chores: Record<string, Chore>
   choreReactions: Record<string, ChoreReaction>
   choreComments: Record<string, ChoreComment>
@@ -96,8 +98,10 @@ interface AppState {
   toggleReaction: (checkinId: string, emoji: string) => void
   addCheer: (checkinId: string, text: string) => void
   sendHouseMessage: (text: string) => void
+  sendLetter: (imageDataUrl: string) => void
+  markLetterRead: (id: string) => void
 
-  // chores (집안일)
+  // chores (할 일)
   addChore: (input: {
     ownerType: ChoreOwnerType
     title: string
@@ -113,7 +117,7 @@ interface AppState {
   addChoreCategory: (label: string) => void
 
   // profile / couple
-  updateProfile: (patch: { nickname?: string; avatarUrl?: string | null }) => void
+  updateProfile: (patch: { nickname?: string; avatarUrl?: string | null; colorTag?: string }) => void
   setStartDate: (date: string) => void
 
   // notifications
@@ -160,6 +164,7 @@ function emptyState() {
     reactions: {},
     cheers: {},
     houseMessages: {},
+    letters: {},
     chores: {},
     choreReactions: {},
     choreComments: {},
@@ -566,6 +571,39 @@ export const useAppStore = create<AppState>()(
         set({ houseMessages: { ...state.houseMessages, [msg.id]: msg }, notifications })
       },
 
+      sendLetter: (imageDataUrl) => {
+        const state = get()
+        if (!state.currentUserId || !state.couple || !imageDataUrl) return
+        const userId = state.currentUserId
+        const letter: Letter = {
+          id: makeId('ltr'),
+          userId,
+          imageDataUrl,
+          createdAt: new Date().toISOString(),
+          read: false,
+        }
+        let notifications = state.notifications
+        const partnerId = state.couple.memberIds.find((m) => m !== userId)
+        if (partnerId) {
+          const n = notify(
+            partnerId,
+            'letter',
+            '손편지가 도착했어요',
+            `${state.users[userId]?.nickname ?? '상대'}님이 손편지를 보냈어요`,
+            letter.id
+          )
+          notifications = { ...notifications, [n.id]: n }
+        }
+        set({ letters: { ...state.letters, [letter.id]: letter }, notifications })
+      },
+
+      markLetterRead: (id) => {
+        const state = get()
+        const l = state.letters[id]
+        if (!l) return
+        set({ letters: { ...state.letters, [id]: { ...l, read: true } } })
+      },
+
       addChore: (input) => {
         const state = get()
         if (!state.couple || !state.currentUserId) return
@@ -592,7 +630,7 @@ export const useAppStore = create<AppState>()(
           const n = notify(
             partnerId,
             'chore',
-            input.ownerType === 'together' ? '새 우리 집안일이 등록됐어요' : '상대가 새 집안일을 등록했어요',
+            input.ownerType === 'together' ? '새 우리 할 일이 등록됐어요' : '상대가 새 할 일을 등록했어요',
             `${state.users[userId]?.nickname ?? '상대'}: "${chore.title}"`,
             id
           )
@@ -641,7 +679,7 @@ export const useAppStore = create<AppState>()(
           const n = notify(
             partnerId,
             'complete',
-            '집안일을 완료했어요',
+            '할 일을 완료했어요',
             `${state.users[userId]?.nickname ?? '상대'}님이 "${chore.title}"을(를) 끝냈어요`,
             id
           )
@@ -735,6 +773,7 @@ export const useAppStore = create<AppState>()(
         const next: User = {
           ...user,
           nickname: patch.nickname?.trim() ? patch.nickname.trim() : user.nickname,
+          colorTag: patch.colorTag ?? user.colorTag,
           avatarUrl:
             patch.avatarUrl === null ? undefined : patch.avatarUrl !== undefined ? patch.avatarUrl : user.avatarUrl,
         }
@@ -787,7 +826,7 @@ export const useAppStore = create<AppState>()(
       deleteAllData: () => set({ ...emptyState() }),
     }),
     {
-      name: 'domo-store-v3',
+      name: 'domo-store-v4',
       onRehydrateStorage: () => (state) => {
         state?.setHydrated()
       },

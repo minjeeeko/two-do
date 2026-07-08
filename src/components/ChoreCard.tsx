@@ -41,7 +41,7 @@ export function ChoreCard({ chore }: { chore: Chore }) {
               <StatusPill tone="brand">같이</StatusPill>
             ) : (
               <span className="inline-flex items-center gap-1">
-                <Avatar label={owner?.nickname ?? '?'} size={18} tone={owner?.colorTag === 'cheer' ? 'cheer' : 'brand'} src={owner?.avatarUrl} />
+                <Avatar label={owner?.nickname ?? '?'} size={18} color={owner?.colorTag} src={owner?.avatarUrl} />
                 <span className="text-[11px] font-semibold text-ink-muted">{owner?.nickname}</span>
               </span>
             )}
@@ -110,7 +110,7 @@ export function ChoreCard({ chore }: { chore: Chore }) {
                   <Avatar
                     label={state.users[c.userId]?.nickname ?? '?'}
                     size={22}
-                    tone={state.users[c.userId]?.colorTag === 'cheer' ? 'cheer' : 'brand'}
+                    color={state.users[c.userId]?.colorTag}
                     src={state.users[c.userId]?.avatarUrl}
                   />
                   <div className="flex-1 min-w-0 bg-canvas rounded-lg px-3 py-1.5">
