@@ -9,6 +9,7 @@ import type {
   CheckinMedia,
   Cheer,
   Couple,
+  HouseMessage,
   Mission,
   MissionFrequency,
   NotificationSettings,
@@ -38,6 +39,7 @@ interface AppState {
   checkins: Record<string, Checkin>
   reactions: Record<string, Reaction>
   cheers: Record<string, Cheer>
+  houseMessages: Record<string, HouseMessage>
   notifications: Record<string, AppNotification>
   badges: Record<string, Badge>
   pointsLog: PointsEntry[]
@@ -85,6 +87,7 @@ interface AppState {
   // reactions / cheers
   toggleReaction: (checkinId: string, emoji: string) => void
   addCheer: (checkinId: string, text: string) => void
+  sendHouseMessage: (text: string) => void
 
   // notifications
   markNotificationRead: (id: string) => void
@@ -129,6 +132,7 @@ function emptyState() {
     checkins: {},
     reactions: {},
     cheers: {},
+    houseMessages: {},
     notifications: {},
     badges: {},
     pointsLog: [],
@@ -506,6 +510,31 @@ export const useAppStore = create<AppState>()(
         set({ cheers: { ...state.cheers, [c.id]: c }, notifications, badges })
       },
 
+      sendHouseMessage: (text) => {
+        const state = get()
+        if (!state.currentUserId || !state.couple || !text.trim()) return
+        const userId = state.currentUserId
+        const msg: HouseMessage = {
+          id: makeId('hm'),
+          userId,
+          text: text.trim(),
+          createdAt: new Date().toISOString(),
+        }
+        let notifications = state.notifications
+        const partnerId = state.couple.memberIds.find((m) => m !== userId)
+        if (partnerId) {
+          const n = notify(
+            partnerId,
+            'cheer',
+            '거실에 응원이 도착했어요',
+            `${state.users[userId]?.nickname ?? '상대'}: "${msg.text}"`,
+            msg.id
+          )
+          notifications = { ...notifications, [n.id]: n }
+        }
+        set({ houseMessages: { ...state.houseMessages, [msg.id]: msg }, notifications })
+      },
+
       markNotificationRead: (id) => {
         const state = get()
         const n = state.notifications[id]
@@ -546,7 +575,7 @@ export const useAppStore = create<AppState>()(
       deleteAllData: () => set({ ...emptyState() }),
     }),
     {
-      name: 'domo-store-v1',
+      name: 'domo-store-v2',
       onRehydrateStorage: () => (state) => {
         state?.setHydrated()
       },

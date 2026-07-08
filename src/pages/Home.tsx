@@ -1,59 +1,91 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
-import { coupleStreak, missionsForCouple, userWeeklyRate } from '../lib/selectors'
-import { Avatar, Button, Card, Chip, EmptyState, ProgressBar, StatusPill } from '../components/ui'
-import { CheckinCard } from '../components/CheckinCard'
-import { CheckIcon, FlameIcon, CalendarIcon, PlusIcon } from '../components/icons'
+import { missionsForCouple } from '../lib/selectors'
+import { Avatar, Button, Card } from '../components/ui'
+import { CheckIcon, SendIcon } from '../components/icons'
+import { GrassRow, HouseIllustration } from '../components/illustrations'
 import { todayStr } from '../lib/date'
-import type { Mission } from '../types'
+import type { HouseMessage } from '../types'
 
-function TodayMissionRow({ mission }: { mission: Mission }) {
-  const currentUserId = useAppStore((s) => s.currentUserId)!
-  const checkins = useAppStore((s) => s.checkins)
-  const users = useAppStore((s) => s.users)
-  const couple = useAppStore((s) => s.couple)!
-  const checkIn = useAppStore((s) => s.checkIn)
-  const today = todayStr()
-
-  const myCheckin = Object.values(checkins).find(
-    (c) => c.missionId === mission.id && c.userId === currentUserId && c.date === today
+function SpeechBubble({
+  side,
+  author,
+  text,
+  tone,
+}: {
+  side: 'left' | 'right'
+  author: string
+  text: string
+  tone: 'brand' | 'cheer'
+}) {
+  const bg = tone === 'brand' ? 'bg-brand-soft' : 'bg-cheer-soft'
+  const nameColor = tone === 'brand' ? 'text-brand-dark' : 'text-cheer'
+  return (
+    <div className={`relative max-w-[150px] rounded-2xl px-3 py-2 ${bg} animate-domo-pop`}>
+      <p className={`text-[10px] font-bold mb-0.5 ${nameColor}`}>{author}</p>
+      <p className="text-[12px] text-ink-2 leading-snug break-words">{text}</p>
+      <div
+        className={`absolute top-4 h-2.5 w-2.5 rotate-45 ${bg} ${side === 'left' ? '-right-1' : '-left-1'}`}
+      />
+    </div>
   )
-  const partnerId = couple.memberIds.find((m) => m !== currentUserId)
-  const partnerCheckin =
-    mission.ownerType === 'couple' && partnerId
-      ? Object.values(checkins).find((c) => c.missionId === mission.id && c.userId === partnerId && c.date === today)
-      : undefined
+}
 
-  const isMine = mission.ownerType === 'couple' || mission.ownerUserId === currentUserId
+function RoomCard({ userId, tone }: { userId: string; tone: 'brand' | 'cheer' }) {
+  const state = useAppStore()
+  const user = state.users[userId]
+  const today = todayStr()
+  const missions = missionsForCouple(state).filter(
+    (m) => m.ownerType === 'couple' || m.ownerUserId === userId
+  )
+  const doneSet = new Set(
+    Object.values(state.checkins)
+      .filter((c) => c.userId === userId && c.date === today)
+      .map((c) => c.missionId)
+  )
+  const shown = missions.slice(0, 4)
+  const doneCount = missions.filter((m) => doneSet.has(m.id)).length
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-line-soft last:border-0">
-      <Link to={`/missions/${mission.id}`} className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <p className="text-[14px] font-semibold text-ink truncate">{mission.title}</p>
-          {mission.ownerType === 'couple' && <StatusPill tone="brand">우리</StatusPill>}
+    <Link to="/missions" className="block">
+      <Card className="p-3.5 h-full active:bg-paper transition-colors">
+        <div className="flex items-center gap-2 mb-3">
+          <Avatar label={user?.nickname ?? '?'} size={26} tone={tone} />
+          <div className="min-w-0">
+            <p className="text-[13px] font-bold text-ink truncate">{user?.nickname}의 방</p>
+            <p className="text-[10.5px] text-ink-faint">
+              오늘 {doneCount}/{missions.length}
+            </p>
+          </div>
         </div>
-        <p className="text-[11.5px] text-ink-faint mt-0.5">
-          {mission.frequency.type === 'daily' ? '매일' : `주 ${mission.frequency.timesPerWeek}회`}
-          {partnerCheckin && ` · ${users[partnerId!]?.nickname}님 완료`}
-        </p>
-      </Link>
-      {isMine ? (
-        <button
-          onClick={() => !myCheckin && checkIn(mission.id, { method: 'check' })}
-          disabled={!!myCheckin}
-          className={`h-9 w-9 rounded-full flex items-center justify-center border transition-colors shrink-0 ${
-            myCheckin ? 'bg-streak border-streak text-white' : 'bg-canvas border-line text-ink-faint active:border-brand'
-          }`}
-          aria-label="인증하기"
-        >
-          <CheckIcon size={17} />
-        </button>
-      ) : (
-        <Avatar label={users[partnerId ?? '']?.nickname ?? '?'} size={30} tone="cheer" />
-      )}
-    </div>
+        <div className="space-y-1.5">
+          {missions.length === 0 && <p className="text-[11.5px] text-ink-faint py-1">오늘 미션이 없어요</p>}
+          {shown.map((m) => {
+            const done = doneSet.has(m.id)
+            return (
+              <div key={m.id} className="flex items-center gap-1.5">
+                <span
+                  className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
+                    done ? 'bg-streak text-white' : 'border border-line'
+                  }`}
+                >
+                  {done && <CheckIcon size={11} />}
+                </span>
+                <span
+                  className={`text-[12px] truncate ${done ? 'text-ink-faint line-through' : 'text-ink-2'}`}
+                >
+                  {m.title}
+                </span>
+              </div>
+            )
+          })}
+          {missions.length > 4 && (
+            <p className="text-[11px] text-ink-faint pl-[22px]">+{missions.length - 4}개 더</p>
+          )}
+        </div>
+      </Card>
+    </Link>
   )
 }
 
@@ -61,166 +93,80 @@ export function Home() {
   const currentUserId = useAppStore((s) => s.currentUserId)!
   const couple = useAppStore((s) => s.couple)!
   const users = useAppStore((s) => s.users)
-  useAppStore((s) => s.missions)
-  const missions = missionsForCouple(useAppStore.getState())
-  const checkins = useAppStore((s) => s.checkins)
-  const reactions = useAppStore((s) => s.reactions)
-  const cheers = useAppStore((s) => s.cheers)
-  const toggleReaction = useAppStore((s) => s.toggleReaction)
-  const addCheer = useAppStore((s) => s.addCheer)
+  const houseMessages = useAppStore((s) => s.houseMessages)
+  const sendHouseMessage = useAppStore((s) => s.sendHouseMessage)
 
-  const [filter, setFilter] = useState<'all' | 'today' | 'week'>('today')
-  const [ownerFilter, setOwnerFilter] = useState<'all' | 'personal' | 'couple'>('all')
+  const [draft, setDraft] = useState('')
 
+  const [u1Id, u2Id] = couple.memberIds
   const partnerId = couple.memberIds.find((m) => m !== currentUserId)!
-  const streak = coupleStreak(useAppStore.getState())
-  const weeklyRate = userWeeklyRate(useAppStore.getState(), currentUserId)
 
-  const myMissionsToday = missions.filter((m) => m.ownerType === 'couple' || m.ownerUserId === currentUserId)
-  const today = todayStr()
-  const myDoneToday = myMissionsToday.filter((m) =>
-    Object.values(checkins).some((c) => c.missionId === m.id && c.userId === currentUserId && c.date === today)
-  ).length
+  const latestBy = (uid: string): HouseMessage | undefined =>
+    Object.values(houseMessages)
+      .filter((m) => m.userId === uid)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0]
 
-  const partnerMissionsToday = missions.filter((m) => m.ownerType === 'couple' || m.ownerUserId === partnerId)
-  const partnerDoneToday = partnerMissionsToday.filter((m) =>
-    Object.values(checkins).some((c) => c.missionId === m.id && c.userId === partnerId && c.date === today)
-  ).length
+  const partnerMsg = latestBy(partnerId)
+  const myMsg = latestBy(currentUserId)
+  const hasAnyMessage = Object.keys(houseMessages).length > 0
 
-  const feed = useMemo(() => {
-    let list = Object.values(checkins).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-    if (filter === 'today') list = list.filter((c) => c.date === today)
-    if (filter === 'week') {
-      const weekAgo = new Date()
-      weekAgo.setDate(weekAgo.getDate() - 7)
-      list = list.filter((c) => new Date(c.date) >= weekAgo)
-    }
-    if (ownerFilter !== 'all') {
-      list = list.filter((c) => {
-        const m = missions.find((mm) => mm.id === c.missionId)
-        return m?.ownerType === ownerFilter
-      })
-    }
-    return list.slice(0, 20)
-  }, [checkins, filter, ownerFilter, missions, today])
+  const send = () => {
+    if (!draft.trim()) return
+    sendHouseMessage(draft)
+    setDraft('')
+  }
 
   return (
-    <div className="px-4 pt-5 pb-6">
-      <div className="mb-5">
-        <p className="font-display text-[24px] text-ink leading-tight">{couple.name}</p>
-        <p className="text-[13px] text-ink-muted mt-0.5">{couple.tagline}</p>
-      </div>
+    <div className="flex flex-col min-h-full">
+      <div className="px-4 pt-6 flex-1">
+        {/* 1. Header */}
+        <h1 className="text-center text-[18px] font-bold text-ink mb-1">
+          <span className="mr-1">🏡</span>
+          {users[u1Id]?.nickname} &amp; {users[u2Id]?.nickname}의 {couple.name}
+        </h1>
+        <p className="text-center text-[12.5px] text-ink-muted mb-3">{couple.tagline}</p>
 
-      <Card className="p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5">
-            <FlameIcon size={18} className="text-streak" />
-            <span className="text-[14px] font-bold text-ink">우리 streak {streak}일</span>
+        {/* 2. House + speech bubbles */}
+        <div className="flex items-end justify-center gap-1 min-h-[170px]">
+          <div className="flex-1 flex justify-end pb-8">
+            {partnerMsg && (
+              <SpeechBubble side="left" author={users[partnerId]?.nickname ?? ''} text={partnerMsg.text} tone="cheer" />
+            )}
           </div>
-          <StatusPill tone="reward">Lv.{couple.level}</StatusPill>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11.5px] text-ink-muted w-[72px] shrink-0">이번 주 나</span>
-          <ProgressBar value={weeklyRate} tone="streak" />
-          <span className="text-[11.5px] text-ink-muted w-8 text-right">{weeklyRate}%</span>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <Card className="p-3.5">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Avatar label={users[currentUserId]?.nickname ?? ''} size={24} tone="brand" />
-            <span className="text-[12.5px] font-semibold text-ink-2">{users[currentUserId]?.nickname}</span>
+          <HouseIllustration className="w-[130px] shrink-0" />
+          <div className="flex-1 flex justify-start pb-8">
+            {myMsg && (
+              <SpeechBubble side="right" author={users[currentUserId]?.nickname ?? ''} text={myMsg.text} tone="brand" />
+            )}
           </div>
-          <p className="text-[20px] font-bold text-ink">
-            {myDoneToday}
-            <span className="text-[13px] text-ink-faint font-normal"> / {myMissionsToday.length}</span>
-          </p>
-          <p className="text-[11px] text-ink-faint mt-0.5">오늘 완료</p>
-        </Card>
-        <Card className="p-3.5">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Avatar label={users[partnerId]?.nickname ?? ''} size={24} tone="cheer" />
-            <span className="text-[12.5px] font-semibold text-ink-2">{users[partnerId]?.nickname}</span>
-          </div>
-          <p className="text-[20px] font-bold text-ink">
-            {partnerDoneToday}
-            <span className="text-[13px] text-ink-faint font-normal"> / {partnerMissionsToday.length}</span>
-          </p>
-          <p className="text-[11px] text-ink-faint mt-0.5">오늘 완료</p>
-        </Card>
-      </div>
-
-      <Card className="p-4 mb-6">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-[14.5px] font-bold text-ink">오늘의 리듬</h2>
-          <Link to="/missions" className="text-[12px] text-ink-muted font-semibold">
-            전체 미션
-          </Link>
         </div>
-        {myMissionsToday.length === 0 ? (
-          <EmptyState
-            icon={<CalendarIcon size={28} />}
-            title="아직 오늘 할 미션이 없어요"
-            desc="미션 탭에서 첫 미션을 만들어보세요"
-          />
-        ) : (
-          myMissionsToday.map((m) => <TodayMissionRow key={m.id} mission={m} />)
+        {!hasAnyMessage && (
+          <p className="text-center text-[12px] text-ink-faint mb-2">서로에게 첫 응원을 남겨보세요</p>
         )}
-      </Card>
 
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[15px] font-bold text-ink">최근 우리 기록</h2>
-        <Link to="/missions/new">
-          <Button size="sm" variant="outline">
-            <PlusIcon size={15} />
-            미션
+        {/* 3. Cheer message input */}
+        <div className="flex gap-2 mt-3 mb-6">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && send()}
+            placeholder="서로에게 응원의 한마디를 남겨보세요"
+            className="flex-1 h-11 rounded-full border border-line px-4 text-[13.5px] outline-none focus:border-brand bg-canvas"
+          />
+          <Button className="!h-11 !w-11 !p-0 rounded-full shrink-0" onClick={send} aria-label="응원 보내기">
+            <SendIcon size={18} />
           </Button>
-        </Link>
+        </div>
+
+        {/* 4. Two rooms */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <RoomCard userId={u1Id} tone="brand" />
+          <RoomCard userId={u2Id} tone="cheer" />
+        </div>
       </div>
 
-      <div className="flex gap-1.5 mb-3">
-        <Chip active={filter === 'today'} onClick={() => setFilter('today')}>
-          오늘
-        </Chip>
-        <Chip active={filter === 'week'} onClick={() => setFilter('week')}>
-          이번 주
-        </Chip>
-        <Chip active={filter === 'all'} onClick={() => setFilter('all')}>
-          전체
-        </Chip>
-        <div className="w-px bg-line-soft mx-0.5" />
-        <Chip active={ownerFilter === 'couple'} onClick={() => setOwnerFilter(ownerFilter === 'couple' ? 'all' : 'couple')}>
-          커플
-        </Chip>
-        <Chip
-          active={ownerFilter === 'personal'}
-          onClick={() => setOwnerFilter(ownerFilter === 'personal' ? 'all' : 'personal')}
-        >
-          개인
-        </Chip>
-      </div>
-
-      <div className="space-y-3">
-        {feed.length === 0 && <EmptyState title="아직 기록이 없어요" desc="오늘의 미션을 인증하면 여기에 쌓여요" />}
-        {feed.map((c) => {
-          const mission = missions.find((m) => m.id === c.missionId)
-          if (!mission) return null
-          return (
-            <CheckinCard
-              key={c.id}
-              checkin={c}
-              mission={mission}
-              author={users[c.userId]}
-              reactions={Object.values(reactions).filter((r) => r.checkinId === c.id)}
-              cheers={Object.values(cheers).filter((ch) => ch.checkinId === c.id)}
-              currentUserId={currentUserId}
-              onToggleReaction={(emoji) => toggleReaction(c.id, emoji)}
-              onAddCheer={(text) => addCheer(c.id, text)}
-            />
-          )
-        })}
-      </div>
+      {/* 5. Grass lawn at the very bottom */}
+      <GrassRow className="mt-2" />
     </div>
   )
 }

@@ -88,6 +88,14 @@ export interface Cheer {
   createdAt: string
 }
 
+/** A standalone cheer message partners leave for each other on the 거실 home. */
+export interface HouseMessage {
+  id: string
+  userId: string // author
+  text: string
+  createdAt: string
+}
+
 export type NotificationType =
   | 'checkin'
   | 'reaction'

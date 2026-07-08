@@ -5,17 +5,9 @@ import { TONE_OPTIONS } from '../../lib/catalog'
 import type { Tone } from '../../types'
 
 export function HouseStep() {
-  const couple = useAppStore((s) => s.couple)
-  const users = useAppStore((s) => s.users)
   const setupHouse = useAppStore((s) => s.setupHouse)
 
-  const defaultName = couple
-    ? `${Object.values(users)
-        .map((u) => u.nickname)
-        .join('&')}의 우리 집`
-    : '우리 집'
-
-  const [name, setName] = useState(defaultName)
+  const [name, setName] = useState('우리 집')
   const [tagline, setTagline] = useState('오늘도 1%만, 같이 가자')
   const [tone, setTone] = useState<Tone>('bright')
 

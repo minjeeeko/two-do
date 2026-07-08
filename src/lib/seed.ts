@@ -5,6 +5,7 @@ import type {
   Checkin,
   Cheer,
   Couple,
+  HouseMessage,
   Mission,
   PointsEntry,
   Reaction,
@@ -51,7 +52,7 @@ export function seedDemoData() {
 
   const couple: Couple = {
     id: coupleId,
-    name: '민지&준호의 우리 집',
+    name: '우리 집',
     tagline: '오늘도 1%만, 같이 가자',
     tone: 'bright',
     memberIds: [u1Id, u2Id],
@@ -320,6 +321,18 @@ export function seedDemoData() {
     { id: makeId('log'), actorUserId: u2Id, action: 'invite_accept', targetType: 'couple', targetId: coupleId, createdAt: couple.connectedAt },
   ]
 
+  // house messages (거실 응원 말풍선)
+  const houseMessages: Record<string, HouseMessage> = {}
+  const seedMessages: [string, string, string][] = [
+    [u2Id, '오늘도 화이팅! 나 먼저 인증했어', todayStr() + 'T08:20:00.000Z'],
+    [u1Id, '고마워 준호야, 나도 이따 할게', todayStr() + 'T08:35:00.000Z'],
+    [u2Id, '어제 같이 걷기 좋았다', daysAgoStr(1) + 'T21:10:00.000Z'],
+  ]
+  for (const [uid, text, createdAt] of seedMessages) {
+    const m: HouseMessage = { id: makeId('hm'), userId: uid, text, createdAt }
+    houseMessages[m.id] = m
+  }
+
   return {
     onboarded: true,
     onboardingStep: 'done' as const,
@@ -332,6 +345,7 @@ export function seedDemoData() {
     checkins,
     reactions,
     cheers,
+    houseMessages,
     notifications,
     badges,
     pointsLog,
