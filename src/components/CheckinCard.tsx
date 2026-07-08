@@ -7,10 +7,10 @@ import { CHEER_PRESETS } from '../lib/catalog'
 import { SendIcon, LockIcon, EyeIcon } from './icons'
 
 const PLACEHOLDER_GRADIENTS = [
-  'from-[#f6dcd1] to-[#e0704f]',
+  'from-[#ffe3ec] to-[#ff5c8a]',
   'from-[#e3ecdb] to-[#6fa355]',
   'from-[#e2eaf2] to-[#6f93b8]',
-  'from-[#f8e1e7] to-[#e07b95]',
+  'from-[#ffe8dc] to-[#ff8a5c]',
 ]
 
 export function CheckinCard({

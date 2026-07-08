@@ -5,10 +5,10 @@ import { TopBar } from '../components/TopBar'
 import { Button, Card, EmptyState, StatusPill } from '../components/ui'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { CheckinCard } from '../components/CheckinCard'
-import { GrassHeatmap } from '../components/GrassHeatmap'
+import { CalendarMonth } from '../components/CalendarMonth'
 import { CameraIcon, CheckIcon, EditIcon, FlameIcon, TrashIcon, ArchiveIcon } from '../components/icons'
 import { calcStreak, todayStr } from '../lib/date'
-import { buildGrass, countsByDate, userDoneDates } from '../lib/selectors'
+import { countsByDate, userDoneDates } from '../lib/selectors'
 import { interestLabel } from '../lib/catalog'
 import { compressImageToDataUrl, ImageValidationError } from '../lib/image'
 import type { Visibility } from '../types'
@@ -57,7 +57,7 @@ export function MissionDetail() {
     .filter((c) => c.missionId === mission.id)
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
 
-  const grass = buildGrass(countsByDate(missionCheckins.filter((c) => c.userId === currentUserId)), 91)
+  const myMissionCounts = countsByDate(missionCheckins.filter((c) => c.userId === currentUserId))
 
   async function handlePhotoPick(file: File) {
     setImgError('')
@@ -214,7 +214,7 @@ export function MissionDetail() {
         <div className="mb-5">
           <p className="text-[13px] font-bold text-ink-2 mb-2.5">내 기록</p>
           <Card className="p-4">
-            <GrassHeatmap days={grass} cellSize={10} />
+            <CalendarMonth countsByDate={myMissionCounts} />
           </Card>
         </div>
 

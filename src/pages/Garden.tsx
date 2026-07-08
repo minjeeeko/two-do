@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import {
-  buildGrass,
   coupleBothActiveDates,
   coupleStreak,
   countsByDate,
@@ -12,7 +11,7 @@ import {
 } from '../lib/selectors'
 import { calcRateOverDays, lastNDays, startOfWeekStr, todayStr } from '../lib/date'
 import { Avatar, Card, ProgressBar, SectionTitle, StatusPill } from '../components/ui'
-import { GrassHeatmap } from '../components/GrassHeatmap'
+import { CalendarMonth } from '../components/CalendarMonth'
 import { FlameIcon } from '../components/icons'
 
 function MiniBarChart({ data, colorClass }: { data: { start: string; count: number }[]; colorClass: string }) {
@@ -45,7 +44,7 @@ function MyRoom() {
   const points = state.pointsLog
     .filter((p) => p.scope === 'personal' && p.userId === currentUserId)
     .reduce((s, p) => s + p.amount, 0)
-  const grass = buildGrass(countsByDate(myCheckins), 182)
+  const myCounts = countsByDate(myCheckins)
   const weekly = weeklyBuckets(doneDates, 8)
 
   const goalMissions = missions.filter((m) => m.endDate)
@@ -71,8 +70,8 @@ function MyRoom() {
       </div>
 
       <Card className="p-4">
-        <SectionTitle>내 잔디</SectionTitle>
-        <GrassHeatmap days={grass} />
+        <SectionTitle>내 달력</SectionTitle>
+        <CalendarMonth countsByDate={myCounts} />
       </Card>
 
       <Card className="p-4">
@@ -119,7 +118,7 @@ function LivingRoomCalendar() {
   const bothActive = coupleBothActiveDates(state)
   const streak = coupleStreak(state)
   const allCheckins = Object.values(state.checkins)
-  const grass = buildGrass(countsByDate(allCheckins), 182)
+  const coupleCounts = countsByDate(allCheckins)
 
   const coupleMissions = missionsForCouple(state).filter((m) => m.ownerType === 'couple')
   const weekStart = startOfWeekStr(todayStr())
@@ -157,7 +156,7 @@ function LivingRoomCalendar() {
           </span>
           <StatusPill tone="reward">{couplePoints}P · Lv.{couple.level}</StatusPill>
         </div>
-        <GrassHeatmap days={grass} />
+        <CalendarMonth countsByDate={coupleCounts} />
       </Card>
 
       <div className="grid grid-cols-2 gap-2.5">

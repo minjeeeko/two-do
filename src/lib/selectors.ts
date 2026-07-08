@@ -1,5 +1,5 @@
 import type { AppNotification, Checkin, Mission, User } from '../types'
-import { addDaysStr, calcStreak, calcWeeklyRate, lastNDays, startOfWeekStr, todayStr } from './date'
+import { addDaysStr, calcStreak, calcWeeklyRate, startOfWeekStr, todayStr } from './date'
 import type { useAppStore } from '../store/useAppStore'
 
 type Store = ReturnType<typeof useAppStore.getState>
@@ -55,25 +55,6 @@ export function coupleBothActiveDates(state: Store): Set<string> {
 
 export function coupleStreak(state: Store): number {
   return calcStreak(coupleBothActiveDates(state))
-}
-
-export interface GrassDay {
-  date: string
-  level: 0 | 1 | 2 | 3 | 4
-  count: number
-}
-
-export function buildGrass(dates: Map<string, number>, days: number): GrassDay[] {
-  const list = lastNDays(days)
-  return list.map((date) => {
-    const count = dates.get(date) ?? 0
-    let level: GrassDay['level'] = 0
-    if (count >= 4) level = 4
-    else if (count === 3) level = 3
-    else if (count === 2) level = 2
-    else if (count === 1) level = 1
-    return { date, level, count }
-  })
 }
 
 export function countsByDate(checkins: Checkin[]): Map<string, number> {

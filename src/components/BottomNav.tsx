@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { GrassIcon, HomeIcon, ListIcon, MailIcon, UserIcon } from './icons'
+import { CalendarIcon, HomeIcon, ListIcon, MailIcon, UserIcon } from './icons'
 import { useAppStore } from '../store/useAppStore'
 import { unreadNotificationCount } from '../lib/selectors'
 
 const tabs = [
   { to: '/', label: '거실', Icon: HomeIcon, end: true },
   { to: '/missions', label: '미션', Icon: ListIcon, end: false },
-  { to: '/garden', label: '잔디', Icon: GrassIcon, end: false },
+  { to: '/garden', label: '잔디', Icon: CalendarIcon, end: false },
   { to: '/mailbox', label: '우편함', Icon: MailIcon, end: false },
   { to: '/me', label: '마이', Icon: UserIcon, end: false },
 ] as const

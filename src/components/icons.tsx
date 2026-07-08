@@ -37,18 +37,14 @@ export function ListIcon(props: IconProps) {
   )
 }
 
-export function GrassIcon(props: IconProps) {
+export function CalendarIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
-      <rect x="3.5" y="3.5" width="4.3" height="4.3" rx="1" />
-      <rect x="10" y="3.5" width="4.3" height="4.3" rx="1" />
-      <rect x="16.5" y="3.5" width="4.3" height="4.3" rx="1" />
-      <rect x="3.5" y="10" width="4.3" height="4.3" rx="1" />
-      <rect x="10" y="10" width="4.3" height="4.3" rx="1" />
-      <rect x="16.5" y="10" width="4.3" height="4.3" rx="1" />
-      <rect x="3.5" y="16.5" width="4.3" height="4.3" rx="1" />
-      <rect x="10" y="16.5" width="4.3" height="4.3" rx="1" />
-      <rect x="16.5" y="16.5" width="4.3" height="4.3" rx="1" />
+      <rect x="3.5" y="4.5" width="17" height="16" rx="2.2" />
+      <path d="M3.5 9.5h17M8 3v3M16 3v3" />
+      <circle cx="8.2" cy="13.5" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="13.5" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="8.2" cy="17" r="1.15" fill="currentColor" stroke="none" />
     </svg>
   )
 }

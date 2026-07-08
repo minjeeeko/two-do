@@ -9,48 +9,48 @@
 
 @theme {
   /* surfaces */
-  --color-paper: #fbf8f3;
+  --color-paper: #ffffff;
   --color-canvas: #ffffff;
-  --color-canvas-soft: #fff9f2;
+  --color-canvas-soft: #fff5f9;
 
   /* ink (text) */
-  --color-ink: #2b2521;
-  --color-ink-2: #57504a;
-  --color-ink-muted: #948b83;
-  --color-ink-faint: #c7bdb2;
+  --color-ink: #2b2129;
+  --color-ink-2: #5c505a;
+  --color-ink-muted: #948995;
+  --color-ink-faint: #cbbec8;
 
   /* lines */
-  --color-line: #ece2d6;
-  --color-line-soft: #f2eae0;
+  --color-line: #f1e2ea;
+  --color-line-soft: #f8eef3;
 
   /* brand */
-  --color-brand: #e0704f;
-  --color-brand-dark: #c15c3f;
-  --color-brand-soft: #f7ddd2;
-  --color-brand-ink: #fff9f5;
+  --color-brand: #ff5c8a;
+  --color-brand-dark: #e23f70;
+  --color-brand-soft: #ffe3ec;
+  --color-brand-ink: #ffffff;
 
   /* status roles (meaning-only, kept out of chrome) */
   --color-streak: #6fa355;
   --color-streak-soft: #e3ecdb;
-  --color-cheer: #e07b95;
-  --color-cheer-soft: #f8e1e7;
+  --color-cheer: #ff8a5c;
+  --color-cheer-soft: #ffe8dc;
   --color-reward: #d9a13a;
   --color-reward-soft: #f6ead2;
   --color-info: #6f93b8;
   --color-info-soft: #e2eaf2;
-  --color-danger: #cf5346;
-  --color-danger-soft: #f6ddd8;
+  --color-danger: #d1435f;
+  --color-danger-soft: #fbdfe6;
 
-  /* grass heatmap scale */
-  --color-grass-0: #f0e7db;
-  --color-grass-1: #d9e6cc;
-  --color-grass-2: #b7d3a0;
-  --color-grass-3: #93be79;
-  --color-grass-4: #6fa355;
+  /* calendar day intensity scale */
+  --color-cal-0: #f6f0f3;
+  --color-cal-1: #ffd9e6;
+  --color-cal-2: #ffb0cb;
+  --color-cal-3: #ff7fa6;
+  --color-cal-4: #ff5c8a;
 
-  --font-display: 'MissedGyuwon', 'Apple SD Gothic Neo', sans-serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', Pretendard,
-    'Apple SD Gothic Neo', 'Noto Sans KR', Roboto, 'Segoe UI', sans-serif, 'Malgun Gothic', 돋움, dotum;
+  --font-display: 'MissedGyuwon', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --font-sans: 'MissedGyuwon', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont,
+    Roboto, 'Segoe UI', sans-serif, 'Malgun Gothic', 돋움, dotum;
 
   --radius-xs: 8px;
   --radius-sm: 12px;
@@ -59,7 +59,7 @@
   --radius-xl: 28px;
 
   --shadow-sheet: 0 -8px 28px -6px rgb(43 37 33 / 0.14);
-  --shadow-float: 0 6px 20px -6px rgb(224 112 79 / 0.35);
+  --shadow-float: 0 6px 20px -6px rgb(255 92 138 / 0.35);
 }
 
 html {
@@ -86,7 +86,10 @@ body {
   box-sizing: border-box;
 }
 
-button {
+button,
+input,
+textarea,
+select {
   font-family: inherit;
   touch-action: manipulation;
 }

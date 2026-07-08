@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore'
 import { coupleStreak, missionsForCouple, userWeeklyRate } from '../lib/selectors'
 import { Avatar, Button, Card, Chip, EmptyState, ProgressBar, StatusPill } from '../components/ui'
 import { CheckinCard } from '../components/CheckinCard'
-import { CheckIcon, FlameIcon, GrassIcon, PlusIcon } from '../components/icons'
+import { CheckIcon, FlameIcon, CalendarIcon, PlusIcon } from '../components/icons'
 import { todayStr } from '../lib/date'
 import type { Mission } from '../types'
 
@@ -160,7 +160,7 @@ export function Home() {
         </div>
         {myMissionsToday.length === 0 ? (
           <EmptyState
-            icon={<GrassIcon size={28} />}
+            icon={<CalendarIcon size={28} />}
             title="아직 오늘 할 미션이 없어요"
             desc="미션 탭에서 첫 미션을 만들어보세요"
           />

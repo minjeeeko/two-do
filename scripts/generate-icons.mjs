@@ -8,8 +8,8 @@ const publicDir = join(__dirname, '..', 'public')
 const iconsDir = join(publicDir, 'icons')
 mkdirSync(iconsDir, { recursive: true })
 
-const TERRACOTTA = '#E0704F'
-const CREAM = '#FFF9F2'
+const PINK = '#FF5C8A'
+const WHITE = '#FFFFFF'
 
 function glyph({ scale = 1, cx = 256, cy = 256 } = {}) {
   // house silhouette: rounded roof + base + couple window, centered at (cx, cy)
@@ -18,31 +18,31 @@ function glyph({ scale = 1, cx = 256, cy = 256 } = {}) {
   const sw = 30 * s
   return `
     <polygon points="${t(256, 108)} ${t(132, 236)} ${t(380, 236)}"
-      fill="${CREAM}" stroke="${CREAM}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" />
-    <rect x="${cx - 106 * s}" y="${cy - 20 * s}" width="${212 * s}" height="${160 * s}" rx="${26 * s}" fill="${CREAM}" />
-    <circle cx="${cx}" cy="${cy + 62 * s}" r="${36 * s}" fill="${TERRACOTTA}" />
-    <circle cx="${cx - 12 * s}" cy="${cy + 62 * s}" r="${6.5 * s}" fill="${CREAM}" />
-    <circle cx="${cx + 12 * s}" cy="${cy + 62 * s}" r="${6.5 * s}" fill="${CREAM}" />
+      fill="${WHITE}" stroke="${WHITE}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" />
+    <rect x="${cx - 106 * s}" y="${cy - 20 * s}" width="${212 * s}" height="${160 * s}" rx="${26 * s}" fill="${WHITE}" />
+    <circle cx="${cx}" cy="${cy + 62 * s}" r="${36 * s}" fill="${PINK}" />
+    <circle cx="${cx - 12 * s}" cy="${cy + 62 * s}" r="${6.5 * s}" fill="${WHITE}" />
+    <circle cx="${cx + 12 * s}" cy="${cy + 62 * s}" r="${6.5 * s}" fill="${WHITE}" />
   `
 }
 
 function svgAny() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-    <rect width="512" height="512" rx="115" fill="${TERRACOTTA}" />
+    <rect width="512" height="512" rx="115" fill="${PINK}" />
     ${glyph({ scale: 1 })}
   </svg>`
 }
 
 function svgMaskable() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-    <rect width="512" height="512" fill="${TERRACOTTA}" />
+    <rect width="512" height="512" fill="${PINK}" />
     ${glyph({ scale: 0.72 })}
   </svg>`
 }
 
 function svgFavicon() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-    <rect width="512" height="512" rx="140" fill="${TERRACOTTA}" />
+    <rect width="512" height="512" rx="140" fill="${PINK}" />
     ${glyph({ scale: 1.06 })}
   </svg>`
 }
